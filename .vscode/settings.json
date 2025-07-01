@@ -18,6 +18,17 @@
         "**/doc": true,
         "**/docs": true,
         "**/layouts": true,
+        "nose2.cfg": true,
+        "Doxyfile": true,
+        "doxygen-todo":true,
+        "license_GPLv2.md": true,
+        "license_GPLv3.md": true,
+        "Makefile": true,
+        "requirements.txt": true,
+        "requirements-dev.txt": true,
+        "LICENSE": true,
+        "license_Modified_BSD.md": true,
+        "setup.cfg": true,
     },
     "files.associations": {
         // QMK Filetypes
