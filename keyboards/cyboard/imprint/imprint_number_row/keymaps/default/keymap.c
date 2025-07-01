@@ -2,16 +2,29 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+// clang-format off
+#include <stdbool.h>
+#include <stdint.h>
+#include "caps_word.h"
+#include "color.h"
+#include "config.h"
+#include "info_config.h"
+#include "keyboard.h"
+#include "keycodes.h"
+#include "keymap_us.h"
+#include "modifiers.h"
+#include "pointing_device.h"
+#include "process_caps_word.h"
+#include "process_tap_dance.h"
+#include "quantum.h"
+#include "quantum_keycodes.h"
+#include "timer.h"
 #include QMK_KEYBOARD_H
 #include <cyboard.h>
-#include "color.h"
-#include "rgb_matrix.h"
-#include "timer.h"
-#include "process_caps_word.h"
 #include "repeat_key.h"
 
 #ifdef COMBO_ENABLE
-#define COMBO_COUNT 2  // Adjust this number based on how many combos you define
+#define COMBO_COUNT 1  // Adjust this number based on how many combos you define
 #endif
 
 // Suppress IntelliSense warnings for LAYOUT macros
@@ -90,6 +103,9 @@ enum custom_keycodes {
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
 
+#define MAGIC_STRING(str, repeat_keycode) \
+    magic_send_string_P(PSTR(str), (repeat_keycode))
+
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
 void set_led_colors(enum led_states led_state) {
@@ -133,229 +149,229 @@ void set_led_colors(enum led_states led_state) {
 }
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer (corrected from inverted VIA export)
-    [0] = LAYOUT(
+    [_BASE] = LAYOUT_num(
         // Left side
         RGB_TOG,  CUT,        COPY,       PASTE,      CTL_A,      UNDO,
         KC_TAB,   KC_B,       KC_F,       KC_L,       KC_M,       KC_Q,
         KC_CAPS,  HRM_N,      HRM_S,      HRM_H,      HRM_T,      KC_K,
         OS_LSFT,  KC_X,       HRM_V,      KC_J,       HRM_D,      KC_Z,
                               ALTTAB,     GUI_TAB,
-        
-        KC_R,       KC_ENT,    HRM_DEL,
-        ALTREP1,    KC_HOME,   KC_ENT,
-        
+
+        KC_R,       KC_ENT,   HRM_DEL,
+        ALTREP1,    KC_R,     KC_ENT,
+
         // Right side
         KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
         KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
                               KC_NO,      KC_NO,
-        
-        HRM_MOUSE,KC_BSPC,    KC_SPC,
-        KC_BTN2,  KC_BSPC,    ALTREP2
+
+        HRM_MOUSE,KC_BSPC,    KC_BTN2,
+        KC_BSPC,  KC_SPC,     ALTREP2
     ),
 
     // Layer 1 - Symbols
-    [1] = LAYOUT(
+    [_SYM] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_GRV,     LSFT(KC_COMM), LSFT(KC_DOT), KC_MINS, KC_BSLS,
         KC_TRNS,  LSFT(KC_1), LSFT(KC_8), KC_SLSH,    KC_EQL,     KC_TRNS,
         KC_TRNS,  LSFT(KC_GRV), LSFT(KC_EQL), KC_LBRC, KC_RBRC,   KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT, KC_TRNS,
         LSFT(KC_3), LSFT(KC_9), LSFT(KC_0), KC_SCLN,  KC_QUOT,    KC_TRNS,
         LSFT(KC_2), KC_LBRC,  KC_RBRC,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layer 2 - Navigation
-    [2] = LAYOUT(
+    [_NAV] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_LALT,    KC_TRNS,    KC_LSFT,    KC_LCTL,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_PGUP,    KC_PGDN,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_PGUP,  KC_HOME,    KC_UP,      KC_END,     LCTL(KC_F), KC_TRNS,
         KC_PGDN,  KC_LEFT,    KC_DOWN,    KC_RGHT,    KC_DEL,     KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layer 3 - Numbers
-    [3] = LAYOUT(
+    [_NUM] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,
         KC_TRNS,  KC_MINS,    KC_4,       KC_5,       KC_6,       KC_PPLS,
         KC_TRNS,  KC_X,       KC_1,       KC_2,       KC_3,       LSFT(KC_5),
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_0,     KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layer 4 - Function keys
-    [4] = LAYOUT(
+    [_FUNC] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,
         KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layer 5 - Mouse
-    [5] = LAYOUT(
+    [_MOUSE] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_BTN1,    KC_MS_U,    KC_BTN2,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_MS_L,    KC_MS_D,    KC_MS_R,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layers 6, 7, and 8 - Empty
-    [6] = LAYOUT(
+    [_EMPTY6] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
-        KC_TRNS,  KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS
-    ),
-    
-    [7] = LAYOUT(
-        // Left side
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,
-        
-        KC_TRNS,  KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
-        // Right side
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
-    [8] = LAYOUT(
+    [_EMPTY7] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,
-        
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,
-        
+
+        KC_TRNS,  KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS
+    ),
+
+    [_EMPTY8] = LAYOUT_num(
+        // Left side
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+                              KC_TRNS,    KC_TRNS,
+
+        KC_TRNS,  KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,
+
+        // Right side
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+                              KC_TRNS,    KC_TRNS,
+
         KC_TRNS,  KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS
     ),
 
     // Layer 9 - GAME layer
-    [9] = LAYOUT(
+    [_GAME] = LAYOUT_num(
         // Left side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_T,     KC_LCTL,    KC_Q,       KC_W,       KC_E,       KC_R,
         KC_G,     KC_LSFT,    KC_A,       KC_S,       KC_D,       KC_F,
         KC_B,     KC_TAB,     KC_Z,       KC_X,       KC_C,       KC_V,
                               KC_TRNS,    KC_TRNS,
-        
+
         KC_SPC,   KC_LSFT,     KC_TRNS,
-        KC_TRNS,  KC_TRNS,     KC_TRNS,
-        
+        KC_LSFT,  KC_SPC,     KC_TRNS,
+
         // Right side
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(0),
         KC_BSLS,  KC_P,       KC_O,       KC_I,       KC_U,       KC_Y,
         KC_QUOT,  KC_SCLN,    KC_L,       KC_K,       KC_J,       KC_H,
         KC_RSFT,  KC_SLSH,    KC_DOT,     KC_COMM,    KC_M,       KC_N,
                               KC_RBRC,    KC_LBRC,
-        
+
         KC_SPC,   KC_BSPC,    KC_BTN1,
         KC_GRV,   KC_SPC,     KC_BSPC
     )
@@ -363,53 +379,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // Combos
 const uint16_t PROGMEM combo1[] = {KC_L, KC_M, COMBO_END};
-const uint16_t PROGMEM combo2[] = {HRM_T, HRM_H, COMBO_END};
-const uint16_t PROGMEM sentence_case_combo[] = {HRM_H, HRM_A, COMBO_END}; // Both shift keys
 
 
 combo_t key_combos[] = {
     COMBO(combo1, KC_TAB),
-    COMBO(combo2, KC_TAB),
-    COMBO(sentence_case_combo, SENTENCE_CASE_ON),
-
 };
-
-// Helper function to send a string while handling Caps Word
-static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-    uint8_t saved_mods = 0;
-    // If Caps Word is on, save the mods and hold Shift.
-    if (is_caps_word_on()) {
-        saved_mods = get_mods();
-        register_mods(MOD_BIT_LSHIFT);
-    }
-
-    send_string_P(str);
-    set_last_keycode(repeat_keycode);
-
-    // If Caps Word is on, restore the mods.
-    if (is_caps_word_on()) {
-        set_mods(saved_mods);
-    }
-}
-
-#define MAGIC_STRING(str, repeat_keycode) \
-  magic_send_string_P(PSTR(str), (repeat_keycode))
-
-// Get tap keycode from tap-hold keys
-static uint16_t get_tap_keycode(uint16_t keycode) {
-    switch (keycode) {
-        case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-            return QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
-        case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-            return QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
-    }
-    return keycode;
-}
 
 // Alternate Repeat Key implementation
 uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
     keycode = get_tap_keycode(keycode);
-    
+
     // Only apply magic when no mods except shift
     if ((mods & ~MOD_MASK_SHIFT) == 0) {
         switch (keycode) {
@@ -418,7 +397,7 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
             case KC_O: return KC_A;         // O -> A
             case KC_E: return KC_U;         // E -> U
             case KC_U: return KC_E;         // U -> E
-            
+
             // Word completions
             case KC_M: return M_MENT;       // M -> MENT
             case KC_T: return M_TION;       // T -> TION
@@ -426,67 +405,29 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
             case KC_N: return M_NESS;       // N -> NESS
             case KC_L: return M_LESS;       // L -> LESS
             case KC_I: return M_ION;        // I -> ION
-            
+
             // Space -> THE
             case KC_SPC:
             case KC_ENT:
                 return M_THE;
         }
     }
-    
+
     return KC_TRNS;
 }
 
-// Repeat key implementation for word completions
-bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
-                            uint8_t* remembered_mods) {
-    keycode = get_tap_keycode(keycode);
-    
-    // Handle sentence case capitalization
-    if (is_sentence_case_on() && is_sentence_case_primed()) {
-        // Check if this is a letter that should be capitalized
-        if (keycode >= KC_A && keycode <= KC_Z) {
-            *remembered_mods |= MOD_BIT_LSHIFT;
-        }
-    }
-    
-    return true;
+void pointing_device_init_user(void) {
+    charybdis_set_pointer_dragscroll_enabled(true, true);
 }
 
-// Sentence case configuration
-char sentence_case_press_user(uint16_t keycode, keyrecord_t* record,
-                              uint8_t mods) {
-    if ((mods & ~(MOD_MASK_SHIFT | MOD_BIT_RALT)) == 0) {
-        const bool shifted = mods & MOD_MASK_SHIFT;
-        switch (keycode) {
-            case KC_A ... KC_Z:
-            case M_THE:
-            case M_ION:
-            case M_MENT:
-            case M_TION:
-            case M_SION:
-                return 'a';  // Letter key.
-
-            case KC_DOT:  // Both . and Shift . (?) punctuate sentence endings.
-            case KC_EXLM:
-            case KC_QUES:
-                return '.';
-
-            case KC_SPC:
-                return ' ';  // Space key.
-
-            case KC_QUOT:
-            case KC_DQUO:
-                return '\'';  // Quote key.
-        }
+void oneshot_mods_changed_user(uint8_t mods) {
+    if (mods & MOD_MASK_SHIFT) {
+        set_led_colors(ACTION_CAPS_WORD);
+    } else {
+        set_led_colors(get_highest_layer(layer_state));
     }
-
-    // Otherwise clear Sentence Case to initial state.
-    sentence_case_clear();
-    return '\0';
 }
 
-// Handle Caps Word visual feedback
 void caps_word_set_user(bool active) {
     if (active) {
         set_led_colors(ACTION_CAPS_WORD);
@@ -495,40 +436,45 @@ void caps_word_set_user(bool active) {
     }
 }
 
-// Handle layer changes for RGB
+static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
+  uint8_t saved_mods = 0;
+
+  if (is_caps_word_on()) {
+    saved_mods = get_mods();
+    register_mods(MOD_BIT_LSHIFT);
+  }
+
+  send_string_P(str);
+  set_last_keycode(repeat_keycode);
+
+  if (is_caps_word_on()) {
+    set_mods(saved_mods);
+  }
+}
+
+bool caps_word_press_user(uint16_t keycode) {
+  switch (keycode) {
+    case KC_A ... KC_Z:
+      add_weak_mods(MOD_BIT_LSHIFT);
+      return true;
+    case KC_1 ... KC_0:
+    case KC_BSPC:
+    case KC_DEL:
+    case KC_UNDS:
+    case KC_COLN:
+    case M_THE:
+    case M_ION:
+    case M_MENT:
+
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 layer_state_t layer_state_set_user(layer_state_t state) {
-    uint8_t layer = get_highest_layer(state);
-    
-    // Don't override special modes
-    if (!caps_word_is_active()) {
-        switch (layer) {
-            case _BASE:
-                set_led_colors(LAYER_BASE);
-                break;
-            case _SYM:
-                set_led_colors(LAYER_SYM);
-                break;
-            case _NAV:
-                set_led_colors(LAYER_NAV);
-                break;
-            case _NUM:
-                set_led_colors(LAYER_NUM);
-                break;
-            case _FUNC:
-                set_led_colors(LAYER_FUNC);
-                break;
-            case _MOUSE:
-                set_led_colors(LAYER_MOUSE);
-                break;
-            case _GAME:
-                set_led_colors(LAYER_GAME);
-                break;
-            default:
-                set_led_colors(LAYER_BASE);
-                break;
-        }
-    }
-    
+    set_led_colors(get_highest_layer(state));
     return state;
 }
 
@@ -548,7 +494,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
             case M_ANCE:    MAGIC_STRING("ance ", KC_S); break;
         }
     }
-    
+
     return true;
 }
 
@@ -558,3 +504,10 @@ void keyboard_post_init_user(void) {
     rgb_matrix_enable();
     set_led_colors(LAYER_BASE);
 }
+
+const key_override_t *key_overrides[] = {
+  NULL
+};
+
+
+
