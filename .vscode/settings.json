@@ -13,7 +13,6 @@
         "**/tests": true,
         "**/tmk_core": true,
         "**/drivers": true,
-        "**/quantum": true,
         "**/platforms": true,
         "**/doc": true,
         "**/docs": true,
@@ -75,7 +74,8 @@
             "url": "./data/schemas/keymap.jsonschema"
         }
     ],
-       "git.detectSubmodules": false,
+    "git.detectSubmodules": false,
+    "C_Cpp.errorSquiggles": "disabled",
 
 
 }
