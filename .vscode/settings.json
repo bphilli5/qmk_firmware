@@ -7,7 +7,17 @@
         "**/.build": true,
         "**/*.hex": true,
         "**/*.bin": true,
-        "**/*.uf2": true
+        "**/*.uf2": true,
+        "**/.git": true,
+        "**/lib": true,
+        "**/tests": true,
+        "**/tmk_core": true,
+        "**/drivers": true,
+        "**/quantum": true,
+        "**/platforms": true,
+        "**/doc": true,
+        "**/docs": true,
+        "**/layouts": true,
     },
     "files.associations": {
         // QMK Filetypes
@@ -55,4 +65,6 @@
         }
     ],
        "git.detectSubmodules": false,
+
+
 }
