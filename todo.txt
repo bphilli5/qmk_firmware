@@ -1,0 +1,10 @@
+BIG YES
+Set all repeat key functions
+Include sentence case
+Include select word
+Include layer lock
+
+Maybe
+Auto mouse layer with easy access to shortcuts
+RGB effects like reactive for normal layers and something cool for GAME
+A mouse jiggler
