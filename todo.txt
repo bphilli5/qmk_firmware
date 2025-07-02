@@ -1,10 +1,13 @@
 BIG YES
+Visualize keymap tool: https://github.com/caksoylar/keymap-drawer/tree/main?tab=readme-ov-file
 Set all repeat key functions
+Correct layer colors: https://docs.qmk.fm/features/rgb_matrix#colors
 Include sentence case
 Include select word
 Include layer lock
 
 Maybe
-Auto mouse layer with easy access to shortcuts
+Auto mouse layer with easy access to shortcuts: https://docs.qmk.fm/features/pointing_device#pointing-device-auto-mouse
 RGB effects like reactive for normal layers and something cool for GAME
-A mouse jiggler
+A mouse jiggler: https://github.com/silvinor/qmk_modules
+Callum swapper: https://github.com/qmk/qmk_firmware/tree/user-keymaps-still-present/users/callum#swapper
