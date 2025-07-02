@@ -27,7 +27,7 @@
         "requirements-dev.txt": true,
         "LICENSE": true,
         "license_Modified_BSD.md": true,
-        "setup.cfg": true,
+        "setup.cfg": true
     },
     "files.associations": {
         // QMK Filetypes
@@ -76,6 +76,19 @@
     ],
     "git.detectSubmodules": false,
     "C_Cpp.errorSquiggles": "disabled",
+
+    "terminal.integrated.profiles.windows": {
+         "QMK_MSYS": {
+             "path": "C:/QMK_MSYS/usr/bin/bash.exe",
+             "env": {
+                 "MSYSTEM": "MINGW64",
+                 "CHERE_INVOKING": "1"
+             },
+             "args": ["--login"]
+         }
+     },
+
+     "terminal.integrated.cursorStyle": "line"
 
 
 }
