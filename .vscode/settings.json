@@ -88,7 +88,10 @@
          }
      },
 
-     "terminal.integrated.cursorStyle": "line"
+     "terminal.integrated.cursorStyle": "line",
+
+     "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json"
+
 
 
 }
