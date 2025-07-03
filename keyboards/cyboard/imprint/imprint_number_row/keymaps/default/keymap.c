@@ -75,7 +75,11 @@ enum custom_keycodes {
     M_ANCE,
 
     ALTREP1,  // Left thumb - for SFB removal
-    ALTREP2   // Right thumb - for word completion
+    ALTREP2,   // Right thumb - for word completion
+
+    // Q -> Qu
+    M_QU  // Magic key for "qu"
+
 };
 
 
@@ -154,7 +158,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  CUT,      COPY,       PASTE,      CTL_A,   UNDO,                          KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       KC_M,    KC_Q,                          KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
+        KC_TAB,   KC_B,     KC_F,       KC_L,       KC_M,    M_QU,                          KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                          KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_V,      KC_J,       HRM_D,   KC_Z,                          KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
                             ALTTAB,     GUI_TAB,    KC_ESC,    KC_NO,   KC_ESC,    KC_BTN1,    KC_NO,    KC_BTN2,    KC_NO,      KC_NO,
@@ -326,22 +330,42 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
-// Updated process_record_user function
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    // Timer for Q_QU tap-hold
+    static uint16_t q_timer;
+
     if (record->event.pressed) {
         switch (keycode) {
-                        // Custom alternate repeat keys
-        case ALTREP1:
+            case ALTREP1:
                 process_altrep1(get_last_keycode(), get_last_mods());
                 return false;
 
             case ALTREP2:
                 process_altrep2(get_last_keycode(), get_last_mods());
                 return false;
+
+            case Q_QU:
+                q_timer = timer_read();
+                return false;  // prevent default processing
+        }
+    } else {
+        switch (keycode) {
+            case Q_QU:
+                if (timer_elapsed(q_timer) < TAPPING_TERM) {
+                    // Tap: send "qu"
+                    tap_code16(Q);
+                    tap_code16(U);
+                } else {
+                    // Hold: just send "q"
+                    tap_code16(Q);
+                }
+                return false;
         }
     }
-    return true;
+
+    return true; // default behavior for all other keys
 }
+
 
 // Optional: Add any keyboard-specific initialization
 void keyboard_post_init_user(void) {
