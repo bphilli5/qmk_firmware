@@ -5,6 +5,7 @@ Correct layer colors: https://docs.qmk.fm/features/rgb_matrix#colors
 Include sentence case
 Include select word
 Include layer lock
+Q as Qu
 
 Maybe
 Auto mouse layer with easy access to shortcuts: https://docs.qmk.fm/features/pointing_device#pointing-device-auto-mouse
