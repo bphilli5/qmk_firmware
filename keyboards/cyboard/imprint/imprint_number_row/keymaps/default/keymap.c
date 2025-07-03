@@ -23,10 +23,11 @@
 #include <cyboard.h>
 #include "repeat_key.h"
 #include "process_key_override.h"  // <- Required for key_override_t
+#include "altrep.h"  // Include the alternate repeat key processing functions
 
 
 #ifdef COMBO_ENABLE
-#define COMBO_COUNT 1  // Adjust this number based on how many combos you define
+#define COMBO_COUNT 2  // Adjust this number based on how many combos you define
 #endif
 
 // Suppress IntelliSense warnings for LAYOUT macros
@@ -71,13 +72,13 @@ enum custom_keycodes {
     M_NESS,
     M_LESS,
     M_ENCE,
-    M_ANCE
+    M_ANCE,
+
+    ALTREP1,  // Left thumb - for SFB removal
+    ALTREP2   // Right thumb - for word completion
 };
 
 
-// Alternate Repeat keys
-#define ALTREP1 QK_AREP  // Left thumb - for SFB removal
-#define ALTREP2 QK_REP   // Right thumb - for word completion
 // Home Row Modifiers
 #define HRM_N LALT_T(KC_N)  // Home Row Modifier for N
 #define HRM_S LGUI_T(KC_S)  // Home Row Modifier for S
@@ -150,14 +151,14 @@ void set_led_colors(enum led_states led_state) {
     }
 }
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    // Layer 0 - Base layer (corrected from inverted VIA export)
+    // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  CUT,      COPY,       PASTE,      CTL_A,   UNDO,                          KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
         KC_TAB,   KC_B,     KC_F,       KC_L,       KC_M,    KC_Q,                          KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                          KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_V,      KC_J,       HRM_D,   KC_Z,                          KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
-                            ALTTAB,     GUI_TAB,    KC_R,    KC_NO,   KC_NO,    KC_BTN1,    KC_NO,    KC_BTN2,    KC_NO,      KC_NO,
-                                                    KC_R,    KC_R,    KC_ENTER, KC_BSPC,    KC_SPC,   KC_BSPC
+                            ALTTAB,     GUI_TAB,    KC_ESC,    KC_NO,   KC_ESC,    KC_BTN1,    KC_NO,    KC_BTN2,    KC_NO,      KC_NO,
+                                                    ALTREP1,    KC_R,    KC_ENTER, KC_BSPC,    KC_SPC,   ALTREP2
 
 
     ),
@@ -184,12 +185,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 3 - Numbers
     [_NUM] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_MINS,    KC_4,       KC_5,       KC_6,       KC_PPLS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_X,       KC_1,       KC_2,       KC_3,       LSFT(KC_5),             KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_0,     KC_TRNS,    KC_TRNS,    KC_TRNS,  KC_TRNS,    KC_TRNS,      KC_TRNS,      KC_TRNS,
-                                                      KC_TRNS,  KC_TRNS,    KC_TRNS, KC_TRNS,KC_TRNS,   KC_TRNS
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_MINS,    KC_4,       KC_5,       KC_6,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_X,       KC_1,       KC_2,       KC_3,       LSFT(KC_5),                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+                              KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,    KC_TRNS,      KC_TRNS,      KC_TRNS,
+                                                      KC_TRNS,    KC_0,      KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS
     ),
 
     // Layer 4 - Function keys
@@ -253,42 +254,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // Combos
 const uint16_t PROGMEM combo1[] = {KC_L, KC_M, COMBO_END};
+const uint16_t PROGMEM combo2[] = {HRM_H, HRM_A, COMBO_END};
 
 
 combo_t key_combos[] = {
     COMBO(combo1, KC_TAB),
+    COMBO(combo2, CW_TOGG),  // Example combo for CAPS_WORD
 };
 
-// Alternate Repeat Key implementation
-uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
-    keycode = get_tap_keycode(keycode);
 
-    // Only apply magic when no mods except shift
-    if ((mods & ~MOD_MASK_SHIFT) == 0) {
-        switch (keycode) {
-            // Common SFB removals
-            case KC_A: return KC_O;         // A -> O
-            case KC_O: return KC_A;         // O -> A
-            case KC_E: return KC_U;         // E -> U
-            case KC_U: return KC_E;         // U -> E
-
-            // Word completions
-            case KC_M: return M_MENT;       // M -> MENT
-            case KC_T: return M_TION;       // T -> TION
-            case KC_S: return M_SION;       // S -> SION
-            case KC_N: return M_NESS;       // N -> NESS
-            case KC_L: return M_LESS;       // L -> LESS
-            case KC_I: return M_ION;        // I -> ION
-
-            // Space -> THE
-            case KC_SPC:
-            case KC_ENT:
-                return M_THE;
-        }
-    }
-
-    return KC_TRNS;
-}
 
 void pointing_device_init_user(void) {
     charybdis_set_pointer_dragscroll_enabled(true, true);
@@ -310,21 +284,21 @@ void caps_word_set_user(bool active) {
     }
 }
 
-static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-  uint8_t saved_mods = 0;
+// static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
+//   uint8_t saved_mods = 0;
 
-  if (is_caps_word_on()) {
-    saved_mods = get_mods();
-    register_mods(MOD_BIT_LSHIFT);
-  }
+//   if (is_caps_word_on()) {
+//     saved_mods = get_mods();
+//     register_mods(MOD_BIT_LSHIFT);
+//   }
 
-  send_string_P(str);
-  set_last_keycode(repeat_keycode);
+//   send_string_P(str);
+//   set_last_keycode(repeat_keycode);
 
-  if (is_caps_word_on()) {
-    set_mods(saved_mods);
-  }
-}
+//   if (is_caps_word_on()) {
+//     set_mods(saved_mods);
+//   }
+// }
 
 bool caps_word_press_user(uint16_t keycode) {
   switch (keycode) {
@@ -352,23 +326,20 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
-// Process custom keycodes
+// Updated process_record_user function
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (record->event.pressed) {
         switch (keycode) {
-            // Magic key macros
-            case M_THE:     MAGIC_STRING("the ", KC_N); break;
-            case M_ION:     MAGIC_STRING("ion ", KC_S); break;
-            case M_TION:    MAGIC_STRING("tion ", KC_S); break;
-            case M_SION:    MAGIC_STRING("sion ", KC_S); break;
-            case M_MENT:    MAGIC_STRING("ment ", KC_S); break;
-            case M_NESS:    MAGIC_STRING("ness ", KC_E); break;
-            case M_LESS:    MAGIC_STRING("less ", KC_N); break;
-            case M_ENCE:    MAGIC_STRING("ence ", KC_S); break;
-            case M_ANCE:    MAGIC_STRING("ance ", KC_S); break;
+                        // Custom alternate repeat keys
+        case ALTREP1:
+                process_altrep1(get_last_keycode(), get_last_mods());
+                return false;
+
+            case ALTREP2:
+                process_altrep2(get_last_keycode(), get_last_mods());
+                return false;
         }
     }
-
     return true;
 }
 
