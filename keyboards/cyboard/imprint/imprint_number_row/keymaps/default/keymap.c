@@ -23,8 +23,6 @@
 #include <cyboard.h>
 #include "repeat_key.h"
 #include "process_key_override.h"  // <- Required for key_override_t
-#include "altrep.h"  // Include the alternate repeat key processing functions
-
 
 #ifdef COMBO_ENABLE
 #define COMBO_COUNT 2  // Adjust this number based on how many combos you define
@@ -35,6 +33,10 @@
 #pragma diag_suppress 59
 #pragma diag_suppress 20
 #endif
+
+// Function declarations
+static void process_altrep1(uint16_t keycode, uint8_t mods);
+static void process_altrep2(uint16_t keycode, uint8_t mods);
 
 // Layer definitions
 enum layer_names {
@@ -344,20 +346,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
                 process_altrep2(get_last_keycode(), get_last_mods());
                 return false;
 
-            case Q_QU:
+            case M_QU:
                 q_timer = timer_read();
                 return false;  // prevent default processing
         }
     } else {
         switch (keycode) {
-            case Q_QU:
+            case M_QU:
                 if (timer_elapsed(q_timer) < TAPPING_TERM) {
                     // Tap: send "qu"
-                    tap_code16(Q);
-                    tap_code16(U);
+                    tap_code16(KC_Q);
+                    tap_code16(KC_U);
                 } else {
                     // Hold: just send "q"
-                    tap_code16(Q);
+                    tap_code16(KC_Q);
                 }
                 return false;
         }
@@ -379,4 +381,37 @@ const key_override_t *key_overrides[] = {
 };
 
 
+// Add processing functions for each alternate repeat key
+static void process_altrep1(uint16_t keycode, uint8_t mods) {
+    // SFB removal patterns
+    switch (keycode) {
+        case KC_A: SEND_STRING("o"); break;    // A -> O
+        case KC_O: SEND_STRING("a"); break;    // O -> A
+        case KC_E: SEND_STRING("u"); break;    // E -> U
+        case KC_U: SEND_STRING("e"); break;    // U -> E
+        case KC_I: SEND_STRING("a"); break;    // I -> A (for "ia" combinations)
+        case KC_R: SEND_STRING("l"); break;    // R -> L (for "rl" combinations)
+        case KC_L: SEND_STRING("r"); break;    // L -> R (for "lr" combinations)
+        case KC_N: SEND_STRING("t"); break;    // N -> T (for "nt" combinations)
+        case KC_T: SEND_STRING("h"); break;    // T -> H (for "th" combinations)
+        case KC_S: SEND_STRING("t"); break;    // S -> T (for "st" combinations)
+        // Add more SFB patterns as needed
+    }
+}
 
+static void process_altrep2(uint16_t keycode, uint8_t mods) {
+    // Word completion patterns
+    switch (keycode) {
+        case KC_M: SEND_STRING(/*m*/"ent"); break;     // M -> MENT
+        case KC_T: SEND_STRING(/*t*/"ion"); break;     // T -> TION
+        case KC_S: SEND_STRING(/*s*/"ion"); break;     // S -> SION
+        case KC_N: SEND_STRING(/*n*/"ess"); break;     // N -> NESS
+        case KC_L: SEND_STRING(/*l*/"ess"); break;     // L -> LESS
+        case KC_I: SEND_STRING(/*i*/"on"); break;      // I -> ION
+        case KC_R: SEND_STRING(/*r*/"ight"); break;    // R -> RIGHT
+        case KC_W: SEND_STRING(/*w*/"ith"); break;     // W -> WITH
+        case KC_H: SEND_STRING(/*h*/"ere"); break;     // H -> HERE
+        case KC_A: SEND_STRING(/*a*/"nd"); break;      // A -> AND
+        // Add more word completion patterns
+    }
+}
