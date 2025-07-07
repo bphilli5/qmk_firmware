@@ -34,10 +34,6 @@
 #pragma diag_suppress 20
 #endif
 
-// Function declarations
-static void process_altrep1(uint16_t keycode, uint8_t mods);
-static void process_altrep2(uint16_t keycode, uint8_t mods);
-
 // Layer definitions
 enum layer_names {
     _BASE = 0,
@@ -76,8 +72,8 @@ enum custom_keycodes {
     M_ENCE,
     M_ANCE,
 
-    ALTREP1,  // Left thumb - for SFB removal
-    ALTREP2,   // Right thumb - for word completion
+    LMAGIC,  // Left thumb - for SFB removal
+    RMAGIC,  // Right thumb - for word completion
 
     // Q -> Qu
     M_QU  // Magic key for "qu"
@@ -111,9 +107,6 @@ enum custom_keycodes {
 #define FIND LCTL(KC_F) // Find command
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
-
-#define MAGIC_STRING(str, repeat_keycode) \
-    magic_send_string_P(PSTR(str), (repeat_keycode))
 
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
@@ -164,9 +157,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                          KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_V,      KC_J,       HRM_D,   KC_Z,                          KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
                             ALTTAB,     GUI_TAB,    KC_ESC,    KC_NO,   KC_ESC,    KC_BTN1,    KC_NO,    KC_BTN2,    KC_NO,      KC_NO,
-                                                    ALTREP1,    KC_R,    KC_ENTER, KC_BSPC,    KC_SPC,   ALTREP2
-
-
+                                                    LMAGIC,    KC_R,    KC_ENTER, KC_BSPC,    KC_SPC,   RMAGIC
     ),
 
     // Layer 1 - Symbols
@@ -253,7 +244,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_T,     KC_LCTL,    KC_Q,       KC_W,       KC_E,       KC_R,                   KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_G,     KC_LSFT,    KC_A,       KC_S,       KC_D,       KC_F,                   KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_B,     KC_TAB,     KC_Z,       KC_X,       KC_C,       KC_V,                   KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_SPC,   KC_LSFT, KC_TRNS, KC_TRNS,KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                              KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS, KC_TRNS,KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       KC_LSFT,  KC_SPC,  KC_TRNS, KC_TRNS,KC_TRNS,  KC_TRNS
     )
 };
@@ -290,21 +281,111 @@ void caps_word_set_user(bool active) {
     }
 }
 
-// static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-//   uint8_t saved_mods = 0;
+bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
+                            uint8_t* remembered_mods) {
+	switch (keycode) {
+		case CW_TOGG:
+        case KC_ESC:
+        case KC_BSPC:
+        case KC_DEL:
 
-//   if (is_caps_word_on()) {
-//     saved_mods = get_mods();
-//     register_mods(MOD_BIT_LSHIFT);
-//   }
+        case LMAGIC:
+        case RMAGIC:
+            return false;  // Magic keys will ignore the above keycodes.
+    }
+    return true;  // Other keys can be repeated.
+}
 
-//   send_string_P(str);
-//   set_last_keycode(repeat_keycode);
+// An enhanced version of SEND_STRING: if Caps Word is active, the Shift key is
+// held while sending the string. Additionally, the last key is set such that if
+// the Repeat Key is pressed next, it produces `repeat_keycode`.
+#define MAGIC_STRING(str, repeat_keycode) \
+		magic_send_string_P(PSTR(str), (repeat_keycode))
 
-//   if (is_caps_word_on()) {
-//     set_mods(saved_mods);
-//   }
-// }
+static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
+	uint8_t saved_mods = 0;
+
+  if (is_caps_word_on()) { // If Caps Word is on, save the mods and hold Shift.
+    saved_mods = get_mods();
+    register_mods(MOD_BIT(KC_LSFT));
+  }
+
+  send_string_with_delay_P(str, TAP_CODE_DELAY);  // Send the string.
+  set_last_keycode(repeat_keycode); // 2024-03-09 Disabled sending of string for mag-rep / rep-mag consistency.
+
+  // If Caps Word is on, restore the mods.
+  if (is_caps_word_on()) {
+    set_mods(saved_mods);
+  }
+}
+
+static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC definitions
+    switch (keycode) {
+		case HRM_A: { MAGIC_STRING("ll ", 		KC_SPC); } break;
+	    case  KC_B: { MAGIC_STRING("ecause ",	KC_NO); } break;
+	    case HRM_C: { MAGIC_STRING("ould ",		KC_NO); } break;
+	    case HRM_D: { MAGIC_STRING("eath ", 		KC_NO); } break;
+		case HRM_E: { MAGIC_STRING("very ",			KC_NO); } break;
+	    case  KC_F: { MAGIC_STRING("amily ", 		KC_NO); } break;
+	    case  KC_G: { MAGIC_STRING("iveWell ", 	KC_NO); } break;
+		case HRM_H: { MAGIC_STRING("ouse ", 		KC_NO); } break;
+		case HRM_I: { MAGIC_STRING("ng ", 		KC_NO); } break;
+	    case  KC_J: { MAGIC_STRING("ust",		KC_NO); } break;
+	    case  KC_K: { MAGIC_STRING("now ", 		KC_NO); } break;
+	    case  KC_L: { MAGIC_STRING("ove ", 		KC_NO); } break;
+	    case  KC_M: { MAGIC_STRING("ent ",		KC_NO); } break;
+	    case HRM_N: { MAGIC_STRING("ever ",		KC_NO); } break;
+		case  KC_O: { MAGIC_STRING("rder ", 		KC_NO); } break;
+	    case  KC_P: { MAGIC_STRING("lease ",    	KC_NO); } break;
+		case  M_QU: { MAGIC_STRING("uestion ", 		KC_NO); } break;
+	    case  KC_R: { MAGIC_STRING("eally", 		KC_NO); } break;
+	    case HRM_S: { MAGIC_STRING("ome ", 		KC_NO); } break;
+        case HRM_T: { MAGIC_STRING("hough ", 		KC_NO); } break;
+		case  KC_U: { MAGIC_STRING("nder ", 		KC_NO); } break;
+	    case  HRM_V: { MAGIC_STRING("ery",	        KC_NO); } break;
+	    case  HRM_W: { MAGIC_STRING("hich ",		KC_NO); } break;
+		case  KC_X: { MAGIC_STRING("xactly ", 		KC_NO); } break;
+		case  KC_Y: { MAGIC_STRING("ou ", 		KC_NO); } break;
+	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_NO); } break;
+        case  KC_SPC: { MAGIC_STRING("the ", 		KC_NO); } break;
+
+		case HRM_COMM: { MAGIC_STRING(" and ",    KC_NO); } break;
+    }
+}
+
+static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC definitions
+    switch (keycode) {
+	    case HRM_A: { MAGIC_STRING("nd",    	KC_SPC); } break;
+	    case  KC_B: { MAGIC_STRING("b", 		KC_NO); } break;
+	    case HRM_C: { MAGIC_STRING("c", 		KC_NO); } break;
+	    case HRM_D: { MAGIC_STRING("d", 		KC_NO); } break;
+	    case HRM_E: { MAGIC_STRING("e", 		KC_NO); } break;
+	    case  KC_F: { MAGIC_STRING("f", 		KC_NO); } break;
+	    case  KC_G: { MAGIC_STRING("g", 		KC_NO); } break;
+	    case HRM_H: { MAGIC_STRING("h", 		KC_NO); } break;
+	    case HRM_I: { MAGIC_STRING("on",    	KC_NO); } break;
+	    case  KC_J: { MAGIC_STRING("j", 		KC_NO); } break;
+	    case  KC_K: { MAGIC_STRING("k", 		KC_NO); } break;
+	    case  KC_L: { MAGIC_STRING("l", 		KC_NO); } break;
+	    case  KC_M: { MAGIC_STRING("m", 		KC_NO); } break;
+	    case  HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
+	    case  KC_O: { MAGIC_STRING("o", 		KC_NO); } break;
+	    case  KC_P: { MAGIC_STRING("p", 		KC_NO); } break;
+	    case  KC_Q: { MAGIC_STRING("ueen",		KC_NO); } break;
+	    case  KC_R: { MAGIC_STRING("r", 		KC_NO); } break;
+	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
+	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
+	    case  KC_U: { MAGIC_STRING("u", 		KC_NO); } break;
+	    case HRM_V: { MAGIC_STRING("v", 		KC_NO); } break;
+	    case HRM_W: { MAGIC_STRING("w", 		KC_NO); } break;
+	    case  KC_X: { MAGIC_STRING("ex",    	KC_NO); } break;
+	    case  KC_Y: { MAGIC_STRING("eah",    	KC_NO); } break;
+	    case  KC_Z: { MAGIC_STRING("z", 		KC_NO); } break;
+
+	    case HRM_COMM: { MAGIC_STRING(" but",    KC_NO); } break;
+		case  KC_SPC: { MAGIC_STRING("the", 	KC_NO); } break;
+    }
+}
 
 bool caps_word_press_user(uint16_t keycode) {
   switch (keycode) {
@@ -337,17 +418,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     static uint16_t q_timer;
 
     if (record->event.pressed) {
-        switch (keycode) {
-            case ALTREP1:
-                process_altrep1(get_last_keycode(), get_last_mods());
-                return false;
-
-            case ALTREP2:
-                process_altrep2(get_last_keycode(), get_last_mods());
-                return false;
-
-            case M_QU:
-                q_timer = timer_read();
+  switch (keycode) {
+        case LMAGIC: { process_left_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
+        case RMAGIC: { process_right_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
+	    case M_QU:
+            q_timer = timer_read();
                 return false;  // prevent default processing
         }
     } else {
@@ -379,39 +454,3 @@ void keyboard_post_init_user(void) {
 const key_override_t *key_overrides[] = {
   NULL
 };
-
-
-// Add processing functions for each alternate repeat key
-static void process_altrep1(uint16_t keycode, uint8_t mods) {
-    // SFB removal patterns
-    switch (keycode) {
-        case KC_A: SEND_STRING("o"); break;    // A -> O
-        case KC_O: SEND_STRING("a"); break;    // O -> A
-        case KC_E: SEND_STRING("u"); break;    // E -> U
-        case KC_U: SEND_STRING("e"); break;    // U -> E
-        case KC_I: SEND_STRING("a"); break;    // I -> A (for "ia" combinations)
-        case KC_R: SEND_STRING("l"); break;    // R -> L (for "rl" combinations)
-        case KC_L: SEND_STRING("r"); break;    // L -> R (for "lr" combinations)
-        case KC_N: SEND_STRING("t"); break;    // N -> T (for "nt" combinations)
-        case KC_T: SEND_STRING("h"); break;    // T -> H (for "th" combinations)
-        case KC_S: SEND_STRING("t"); break;    // S -> T (for "st" combinations)
-        // Add more SFB patterns as needed
-    }
-}
-
-static void process_altrep2(uint16_t keycode, uint8_t mods) {
-    // Word completion patterns
-    switch (keycode) {
-        case KC_M: SEND_STRING(/*m*/"ent"); break;     // M -> MENT
-        case KC_T: SEND_STRING(/*t*/"ion"); break;     // T -> TION
-        case KC_S: SEND_STRING(/*s*/"ion"); break;     // S -> SION
-        case KC_N: SEND_STRING(/*n*/"ess"); break;     // N -> NESS
-        case KC_L: SEND_STRING(/*l*/"ess"); break;     // L -> LESS
-        case KC_I: SEND_STRING(/*i*/"on"); break;      // I -> ION
-        case KC_R: SEND_STRING(/*r*/"ight"); break;    // R -> RIGHT
-        case KC_W: SEND_STRING(/*w*/"ith"); break;     // W -> WITH
-        case KC_H: SEND_STRING(/*h*/"ere"); break;     // H -> HERE
-        case KC_A: SEND_STRING(/*a*/"nd"); break;      // A -> AND
-        // Add more word completion patterns
-    }
-}
