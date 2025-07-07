@@ -4,10 +4,6 @@ Correct layer colors: https://docs.qmk.fm/features/rgb_matrix#colors
         RGB for caps lock
 Include sentence case
 Include select word
-Include layer lock
-Q as Qu
-    Shift only capitalizes Q
-    M deletes u in qu for QMK
 Include side definitions for chordal hold
 
 Maybe
