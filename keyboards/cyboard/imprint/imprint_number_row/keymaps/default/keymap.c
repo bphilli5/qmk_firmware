@@ -98,6 +98,7 @@ enum custom_keycodes {
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
 #define WINSWITCH LGUI(LSFT(KC_RGHT)) // Windows Switch command
+#define KC_UNDS S(KC_MINS)
 
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
@@ -147,7 +148,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,   KC_B,     KC_F,       KC_L,       KC_M,    M_QU,                      KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                      KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_V,      KC_J,       HRM_D,   KC_Z,                      KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
-                            ALTTAB,     GUI_TAB,    KC_ESC,  KC_NO,   KC_ESC, KC_BTN1,  KC_NO,    KC_BTN2,    KC_WBAK,    KC_WFWD,
+                            ALTTAB,     GUI_TAB,    KC_ESC,  KC_NO,   KC_ESC, KC_BTN1,  HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  KC_R,    KC_ENT, KC_BSPC,  KC_SPC,   RMAGIC
     ),
 
@@ -156,7 +157,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
         KC_TRNS,  KC_GRV,       KC_EQL,         KC_BSLS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
         KC_TRNS,  LSFT(KC_1),   LSFT(KC_8),     KC_NO,          KC_EQL,         KC_TRNS,                        LSFT(KC_3), LSFT(KC_9),    LSFT(KC_0),    KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  LSFT(KC_GRV), LSFT(KC_EQL),   KC_LBRC,        LSFT(KC_MINS),  KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  LSFT(KC_GRV), LSFT(KC_EQL),   KC_LBRC,        KC_UNDS,  KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        QK_LLCK,    KC_TRNS,   KC_TRNS, QK_LLCK,    KC_TRNS,       KC_TRNS,       KC_TRNS,
                                                                 KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS
     ),
@@ -183,7 +184,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 4 - Function keys
     [_FUNC] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_BOOT,
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
@@ -364,7 +365,7 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 	    case HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
 	    case  KC_O: { MAGIC_STRING("a", 		KC_NO); } break;
 	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
-	    case  KC_Q: { MAGIC_STRING("q",  		KC_NO); } break;
+	    case  KC_Q: { KC_BSPC,                  MAGIC_STRING("mk"); } break;
 	    case  KC_R: { MAGIC_STRING("r ", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
 	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
@@ -413,9 +414,30 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         case LMAGIC: { process_left_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
         case RMAGIC: { process_right_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
 	    case M_QU:
-            q_timer = timer_read();
-                return false;  // prevent default processing
-        }
+            if (record->event.pressed) {
+                q_timer = timer_read();
+            } else {
+                if (timer_elapsed(q_timer) < TAPPING_TERM) {
+                    uint8_t mods = get_mods();
+                    bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
+
+                    // Temporarily clear Shift to prevent affecting 'u'
+                    if (shift) {
+                        del_mods(MOD_MASK_SHIFT);
+                        tap_code16(shift ? KC_Q : KC_Q);  // sends 'Q'
+                        tap_code(KC_U);                   // sends 'u' even if Shift was held
+                        set_mods(mods);                   // restore mods
+                    } else {
+                        tap_code(KC_Q);
+                        tap_code(KC_U);
+                    }
+                } else {
+                    tap_code(KC_Q);
+                }
+                return false;
+            }
+            break;
+
     } else {
         switch (keycode) {
             case M_QU:

@@ -1,6 +1,5 @@
 BIG YES
 Visualize keymap tool: https://github.com/caksoylar/keymap-drawer/tree/main?tab=readme-ov-file
-Set all repeat key functions
 Correct layer colors: https://docs.qmk.fm/features/rgb_matrix#colors
         RGB for caps lock
 Include sentence case
