@@ -61,18 +61,8 @@ enum led_states {
 };
 
 enum custom_keycodes {
-    // Magic key macros
-    M_THE = SAFE_RANGE,  // Magic key for "the "
-    M_ION,
-    M_TION,
-    M_SION,
-    M_MENT,
-    M_NESS,
-    M_LESS,
-    M_ENCE,
-    M_ANCE,
 
-    LMAGIC,  // Left thumb - for SFB removal
+    LMAGIC = SAFE_RANGE,  // Left thumb - for SFB removal
     RMAGIC,  // Right thumb - for word completion
 
     // Q -> Qu
@@ -326,7 +316,7 @@ static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC defi
     switch (keycode) {
 		case HRM_A: { MAGIC_STRING("ll ", 		KC_SPC); } break;
 	    case  KC_B: { MAGIC_STRING("ecause ",	KC_NO); } break;
-	    case HRM_C: { MAGIC_STRING("ould ",		KC_NO); } break;
+	    case HRM_C: { MAGIC_STRING("opy ",		KC_NO); } break;
 	    case HRM_D: { MAGIC_STRING("eath ", 		KC_NO); } break;
 		case HRM_E: { MAGIC_STRING("very ",			KC_NO); } break;
 	    case  KC_F: { MAGIC_STRING("amily ", 		KC_NO); } break;
@@ -341,13 +331,13 @@ static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC defi
 		case  KC_O: { MAGIC_STRING("rder ", 		KC_NO); } break;
 	    case  KC_P: { MAGIC_STRING("lease ",    	KC_NO); } break;
 		case  M_QU: { MAGIC_STRING("uestion ", 		KC_NO); } break;
-	    case  KC_R: { MAGIC_STRING("eally", 		KC_NO); } break;
+	    case  KC_R: { MAGIC_STRING("the", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("ome ", 		KC_NO); } break;
         case HRM_T: { MAGIC_STRING("hough ", 		KC_NO); } break;
 		case  KC_U: { MAGIC_STRING("nder ", 		KC_NO); } break;
 	    case HRM_V: { MAGIC_STRING("ery",	        KC_NO); } break;
 	    case HRM_W: { MAGIC_STRING("hich ",		KC_NO); } break;
-		case  KC_X: { MAGIC_STRING("xactly ", 		KC_NO); } break;
+		case  KC_X: { KC_BSPC,                  MAGIC_STRING("exactly "); } break;
 		case  KC_Y: { MAGIC_STRING("ou ", 		KC_NO); } break;
 	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_NO); } break;
         case KC_SPC: { MAGIC_STRING("the ", 		KC_NO); } break;
@@ -358,31 +348,31 @@ static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC defi
 
 static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC definitions
     switch (keycode) {
-	    case HRM_A: { MAGIC_STRING("nd",    	KC_SPC); } break;
-	    case  KC_B: { MAGIC_STRING("b", 		KC_NO); } break;
-	    case HRM_C: { MAGIC_STRING("c", 		KC_NO); } break;
+	    case HRM_A: { MAGIC_STRING("nd ",     	KC_NO); } break;
+	    case  KC_B: { MAGIC_STRING("s", 		KC_NO); } break;
+	    case HRM_C: { MAGIC_STRING("y", 		KC_NO); } break;
 	    case HRM_D: { MAGIC_STRING("d", 		KC_NO); } break;
 	    case HRM_E: { MAGIC_STRING("e", 		KC_NO); } break;
 	    case  KC_F: { MAGIC_STRING("f", 		KC_NO); } break;
-	    case  KC_G: { MAGIC_STRING("g", 		KC_NO); } break;
-	    case HRM_H: { MAGIC_STRING("h", 		KC_NO); } break;
-	    case HRM_I: { MAGIC_STRING("on",    	KC_NO); } break;
-	    case  KC_J: { MAGIC_STRING("j", 		KC_NO); } break;
-	    case  KC_K: { MAGIC_STRING("k", 		KC_NO); } break;
+	    case  KC_G: { MAGIC_STRING("y", 		KC_NO); } break;
+	    case HRM_H: { MAGIC_STRING("appy ", 	KC_NO); } break;
+	    case HRM_I: { MAGIC_STRING("on ",    	KC_NO); } break;
+	    case  KC_J: { MAGIC_STRING("oke ", 		KC_NO); } break;
+	    case  KC_K: { MAGIC_STRING("ind ", 		KC_NO); } break;
 	    case  KC_L: { MAGIC_STRING("l", 		KC_NO); } break;
-	    case  KC_M: { MAGIC_STRING("m", 		KC_NO); } break;
+	    case  KC_M: { MAGIC_STRING("ing ", 		KC_NO); } break;
 	    case HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
-	    case  KC_O: { MAGIC_STRING("o", 		KC_NO); } break;
-	    case  KC_P: { MAGIC_STRING("p", 		KC_NO); } break;
-	    case  KC_Q: { MAGIC_STRING("ueen",		KC_NO); } break;
-	    case  KC_R: { MAGIC_STRING("r", 		KC_NO); } break;
+	    case  KC_O: { MAGIC_STRING("a", 		KC_NO); } break;
+	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
+	    case  KC_Q: { MAGIC_STRING("q",  		KC_NO); } break;
+	    case  KC_R: { MAGIC_STRING("r ", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
 	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
-	    case  KC_U: { MAGIC_STRING("u", 		KC_NO); } break;
-	    case HRM_V: { MAGIC_STRING("v", 		KC_NO); } break;
-	    case HRM_W: { MAGIC_STRING("w", 		KC_NO); } break;
-	    case  KC_X: { MAGIC_STRING("ex",    	KC_NO); } break;
-	    case  KC_Y: { MAGIC_STRING("eah",    	KC_NO); } break;
+	    case  KC_U: { MAGIC_STRING("e", 		KC_NO); } break;
+	    case HRM_V: { MAGIC_STRING("ote ", 		KC_NO); } break;
+	    case HRM_W: { MAGIC_STRING("ould ", 	KC_NO); } break;
+	    case  KC_X: { KC_BSPC,                  MAGIC_STRING("expect "); } break;
+	    case  KC_Y: { MAGIC_STRING("o",    	KC_NO); } break;
 	    case  KC_Z: { MAGIC_STRING("z", 		KC_NO); } break;
 
 	    case HRM_COMM: { MAGIC_STRING(" but",    KC_NO); } break;
