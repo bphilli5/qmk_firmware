@@ -98,7 +98,6 @@ enum custom_keycodes {
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
 #define WINSWITCH LGUI(LSFT(KC_RGHT)) // Windows Switch command
-#define KC_UNDS S(KC_MINS)
 
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
@@ -331,14 +330,16 @@ static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC defi
 	    case HRM_N: { MAGIC_STRING("ever ",		KC_NO); } break;
 		case  KC_O: { MAGIC_STRING("rder ", 		KC_NO); } break;
 	    case  KC_P: { MAGIC_STRING("lease ",    	KC_NO); } break;
-		case  M_QU: { MAGIC_STRING("uestion ", 		KC_NO); } break;
+		case  M_QU: { MAGIC_STRING("estion ", 		KC_NO); } break;
 	    case  KC_R: { MAGIC_STRING("the", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("ome ", 		KC_NO); } break;
         case HRM_T: { MAGIC_STRING("hough ", 		KC_NO); } break;
 		case  KC_U: { MAGIC_STRING("nder ", 		KC_NO); } break;
 	    case HRM_V: { MAGIC_STRING("ery",	        KC_NO); } break;
 	    case HRM_W: { MAGIC_STRING("hich ",		KC_NO); } break;
-		case  KC_X: { KC_BSPC,                  MAGIC_STRING("exactly "); } break;
+		case  KC_X: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("exactly ", KC_NO); } break;
 		case  KC_Y: { MAGIC_STRING("ou ", 		KC_NO); } break;
 	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_NO); } break;
         case KC_SPC: { MAGIC_STRING("the ", 		KC_NO); } break;
@@ -365,19 +366,23 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 	    case HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
 	    case  KC_O: { MAGIC_STRING("a", 		KC_NO); } break;
 	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
-	    case  KC_Q: { KC_BSPC,                  MAGIC_STRING("mk"); } break;
+	    case  M_QU: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("mk ", KC_NO); } break;
 	    case  KC_R: { MAGIC_STRING("r ", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
 	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
 	    case  KC_U: { MAGIC_STRING("e", 		KC_NO); } break;
 	    case HRM_V: { MAGIC_STRING("ote ", 		KC_NO); } break;
 	    case HRM_W: { MAGIC_STRING("ould ", 	KC_NO); } break;
-	    case  KC_X: { KC_BSPC,                  MAGIC_STRING("expect "); } break;
+	    case  KC_X: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("expect ", KC_NO); } break;
 	    case  KC_Y: { MAGIC_STRING("o",    	KC_NO); } break;
 	    case  KC_Z: { MAGIC_STRING("z", 		KC_NO); } break;
 
 	    case HRM_COMM: { MAGIC_STRING(" but",    KC_NO); } break;
-		case KC_SPC: { MAGIC_STRING("the", 	KC_NO); } break;
+		case KC_SPC: { MAGIC_STRING(" the", 	KC_NO); } break;
     }
 }
 
@@ -406,27 +411,36 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
-    // Timer for Q_QU tap-hold
     static uint16_t q_timer;
 
-    if (record->event.pressed) {
-  switch (keycode) {
-        case LMAGIC: { process_left_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
-        case RMAGIC: { process_right_magic(get_last_keycode(), get_last_mods()); set_last_keycode(KC_SPC); } return false;
-	    case M_QU:
+    switch (keycode) {
+        case LMAGIC:
+            if (record->event.pressed) {
+                process_left_magic(get_last_keycode(), get_last_mods());
+                set_last_keycode(KC_SPC);
+            }
+            return false;
+
+        case RMAGIC:
+            if (record->event.pressed) {
+                process_right_magic(get_last_keycode(), get_last_mods());
+                set_last_keycode(KC_SPC);
+            }
+            return false;
+
+        case M_QU:
             if (record->event.pressed) {
                 q_timer = timer_read();
-            } else {
+            } else {c
                 if (timer_elapsed(q_timer) < TAPPING_TERM) {
                     uint8_t mods = get_mods();
                     bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
 
-                    // Temporarily clear Shift to prevent affecting 'u'
                     if (shift) {
                         del_mods(MOD_MASK_SHIFT);
-                        tap_code16(shift ? KC_Q : KC_Q);  // sends 'Q'
-                        tap_code(KC_U);                   // sends 'u' even if Shift was held
-                        set_mods(mods);                   // restore mods
+                        tap_code16(KC_Q);
+                        tap_code(KC_U);
+                        set_mods(mods);
                     } else {
                         tap_code(KC_Q);
                         tap_code(KC_U);
@@ -434,35 +448,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
                 } else {
                     tap_code(KC_Q);
                 }
-                return false;
             }
-            break;
-
-    } else {
-        switch (keycode) {
-            case M_QU:
-                if (timer_elapsed(q_timer) < TAPPING_TERM) {
-                    // Tap: send "qu"
-                    tap_code16(KC_Q);
-                    tap_code16(KC_U);
-                } else {
-                    // Hold: just send "q"
-                    tap_code16(KC_Q);
-                }
-                return false;
-        }
+            return false;
     }
 
-    return true; // default behavior for all other keys
+    return true;
 }
 
-
-// Optional: Add any keyboard-specific initialization
-void keyboard_post_init_user(void) {
-    // Initialize RGB
-    rgb_matrix_enable();
-    set_led_colors(LAYER_BASE);
-}
 
 const key_override_t *key_overrides[] = {
   NULL
