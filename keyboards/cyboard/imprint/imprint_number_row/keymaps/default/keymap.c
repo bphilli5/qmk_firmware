@@ -56,6 +56,9 @@ enum led_states {
     LAYER_NUM,
     LAYER_FUNC,
     LAYER_MOUSE,
+    LAYER_EMPTY6,
+    LAYER_EMPTY7,
+    LAYER_EMPTY8,
     LAYER_GAME,
     ACTION_CAPS_WORD
 };
@@ -102,41 +105,48 @@ enum custom_keycodes {
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
 void set_led_colors(enum led_states led_state) {
+    rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_COLOR);
+
     switch (led_state) {
         case LAYER_BASE:
             rgb_matrix_sethsv(HSV_PURPLE);  // Purple for base
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_SYM:
             rgb_matrix_sethsv(HSV_MAGENTA); // Magenta for symbols
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_NAV:
             rgb_matrix_sethsv(HSV_CORAL);   // Coral for navigation
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_NUM:
             rgb_matrix_sethsv(HSV_ORANGE);  // Orange for numbers
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            //  rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_FUNC:
             rgb_matrix_sethsv(HSV_CYAN);    // Cyan for function keys
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_MOUSE:
             rgb_matrix_sethsv(HSV_GREEN);   // Green for mouse
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
+        case LAYER_EMPTY6:
+            rgb_matrix_sethsv(HSV_BLACK);   // Black for empty layers
+        case LAYER_EMPTY7:
+            rgb_matrix_sethsv(HSV_BLACK);
+        case LAYER_EMPTY8:
+            rgb_matrix_sethsv(HSV_BLACK);
         case LAYER_GAME:
-            rgb_matrix_sethsv(HSV_BLUE);    // Blue for GAME
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            rgb_matrix_mode_noeeprom(RGB_MATRIX_RAINBOW_BEACON);
+            // rgb_matrix_sethsv(HSV_WHITE); // White for game layer
             return;
         case ACTION_CAPS_WORD:
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_GRADIENT_UP_DOWN);
+            rgb_matrix_sethsv(HSV_BLUE);
             return;
         default:
             rgb_matrix_sethsv(HSV_PURPLE);
-            rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
+            // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
     }
 }
@@ -156,7 +166,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
         KC_TRNS,  KC_GRV,       KC_EQL,         KC_BSLS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
         KC_TRNS,  LSFT(KC_1),   LSFT(KC_8),     KC_NO,          KC_EQL,         KC_TRNS,                        LSFT(KC_3), LSFT(KC_9),    LSFT(KC_0),    KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  LSFT(KC_GRV), LSFT(KC_EQL),   KC_LBRC,        KC_UNDS,  KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  LSFT(KC_GRV), LSFT(KC_EQL),   KC_LBRC,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        QK_LLCK,    KC_TRNS,   KC_TRNS, QK_LLCK,    KC_TRNS,       KC_TRNS,       KC_TRNS,
                                                                 KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS
     ),
@@ -241,7 +251,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // Combos
-const uint16_t PROGMEM combo1[] = {KC_L, KC_M, COMBO_END};
+const uint16_t PROGMEM combo1[] = {HRM_T, HRM_H, COMBO_END};
 const uint16_t PROGMEM combo2[] = {HRM_H, HRM_A, COMBO_END};
 const uint16_t PROGMEM combo3[] = {HRM_T, HRM_H, HRM_S, COMBO_END};
 
@@ -431,7 +441,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         case M_QU:
             if (record->event.pressed) {
                 q_timer = timer_read();
-            } else {c
+            } else {
                 if (timer_elapsed(q_timer) < TAPPING_TERM) {
                     uint8_t mods = get_mods();
                     bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
