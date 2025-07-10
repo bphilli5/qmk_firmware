@@ -69,27 +69,41 @@ enum custom_keycodes {
     RMAGIC,  // Right thumb - for word completion
 
     // Q -> Qu
-    M_QU  // Magic key for "qu"
+    M_QU,  // Magic key for "qu"
+
+    // Macros to handle h/v switcher
+    M_HV
 
 };
 
 
 // Home Row Modifiers
+// Right Hand Side
 #define HRM_N LALT_T(KC_N)  // Home Row Modifier for N
 #define HRM_S LGUI_T(KC_S)  // Home Row Modifier for S
-#define HRM_H LSFT_T(KC_H)  // Home Row Modifier for H
+#define HRM_H LSFT_T(M_HV)  // Home Row Modifier for H
 #define HRM_T LT(_NAV, KC_T)   // Home Row Modifier for T
-#define HRM_D LCTL_T(KC_D)  // Home Row Modifier for D
-#define HRM_V LT(_SYM, KC_V)   // Home Row Modifier for V
+#define HRM_R LT(_NAV, KC_BSLS) // Home Row Modifier for R
+// Right Non Home Row Modifiers
+#define HRM_D LCTL_T(KC_D)  // Modifier for D
+#define HRM_V LT(_SYM, KC_V)   // Modifier for V
+
+
+// Left Hand Side
 #define HRM_C LT(_NUM, KC_C) // Home Row Modifier for C
 #define HRM_A RSFT_T(KC_A) // Home Row Modifier for A
 #define HRM_E RGUI_T(KC_E) // Home Row Modifier for E
 #define HRM_I RALT_T(KC_I) // Home Row Modifier for I
-#define HRM_W RCTL_T(KC_W) // Home Row Modifier for W
-#define HRM_SCLN LT(_SYM, KC_SCLN) // Home Row Modifier for SCLN
-#define HRM_COMM RGUI_T(KC_COMM) // Home Row Modifier for COMM
-#define HRM_DEL LT(_FUNC, KC_DEL) // Home Row Modifier for DEL
-#define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Home Row Modifier for Mouse Button 1
+#define HRM_SPC LT(_NUM, KC_SPC) // Home Row Modifier for Space
+// Left Non Home Row Modifiers
+#define HRM_W RCTL_T(KC_W) // Modifier for W
+#define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
+#define HRM_COMM KC_COMM //  Row Modifier for COMM
+#define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DEL
+#define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
+
+
+// Command shorthands
 #define CUT LCTL(KC_X) // Cut command
 #define COPY LCTL(KC_C) // Copy command
 #define PASTE LCTL(KC_V) // Paste command
@@ -158,7 +172,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                      KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_V,      KC_J,       HRM_D,   KC_Z,                      KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
                             ALTTAB,     GUI_TAB,    KC_ESC,  KC_NO,   KC_ESC, KC_BTN1,  HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
-                                                    LMAGIC,  KC_R,    KC_ENT, KC_BSPC,  KC_SPC,   RMAGIC
+                                                    LMAGIC,  HRM_R,    KC_ENT, KC_BSPC, HRM_SPC,   RMAGIC
     ),
 
     // Layer 1 - Symbols
@@ -185,8 +199,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_NUM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_MINS,    KC_4,       KC_5,       KC_6,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_X,       KC_1,       KC_2,       KC_3,       LSFT(KC_5),                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_MINS,    KC_1,       KC_2,       KC_3,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_X,       KC_4,       KC_5,       KC_6,       LSFT(KC_5),                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,    KC_TRNS,      KC_TRNS,      KC_TRNS,
                                                       KC_TRNS,    KC_0,      KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS
     ),
@@ -251,15 +265,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // Combos
-const uint16_t PROGMEM combo1[] = {HRM_T, HRM_H, COMBO_END};
-const uint16_t PROGMEM combo2[] = {HRM_H, HRM_A, COMBO_END};
-const uint16_t PROGMEM combo3[] = {HRM_T, HRM_H, HRM_S, COMBO_END};
+const uint16_t PROGMEM TH_TAB[] = {HRM_T, HRM_H, COMBO_END};
+const uint16_t PROGMEM HA_CW[] = {HRM_H, HRM_A, COMBO_END};
+const uint16_t PROGMEM THS_WSW[] = {HRM_T, HRM_H, HRM_S, COMBO_END};
+const uint16_t PROGMEM NS_Z[] = {KC_N, KC_S, COMBO_END};
 
 
 combo_t key_combos[] = {
-    COMBO(combo1, KC_TAB),
-    COMBO(combo2, CW_TOGG),
-    COMBO(combo3, WINSWITCH)
+    COMBO(TH_TAB, KC_TAB),
+    COMBO(HA_CW,  CW_TOGG),
+    COMBO(THS_WSW, WINSWITCH),
+    COMBO(NS_Z,   KC_Z)
 };
 
 
@@ -330,7 +346,9 @@ static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC defi
 	    case HRM_D: { MAGIC_STRING("eath ", 		KC_NO); } break;
 		case HRM_E: { MAGIC_STRING("very ",			KC_NO); } break;
 	    case  KC_F: { MAGIC_STRING("amily ", 		KC_NO); } break;
-	    case  KC_G: { MAGIC_STRING("iveWell ", 	KC_NO); } break;
+	    case  KC_G: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("GiveWell ", 	KC_NO); } break;
 		case HRM_H: { MAGIC_STRING("ouse ", 		KC_NO); } break;
 		case HRM_I: { MAGIC_STRING("ng ", 		KC_NO); } break;
 	    case  KC_J: { MAGIC_STRING("ust",		KC_NO); } break;
@@ -367,7 +385,9 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 	    case HRM_E: { MAGIC_STRING("e", 		KC_NO); } break;
 	    case  KC_F: { MAGIC_STRING("f", 		KC_NO); } break;
 	    case  KC_G: { MAGIC_STRING("y", 		KC_NO); } break;
-	    case HRM_H: { MAGIC_STRING("appy ", 	KC_NO); } break;
+	    case HRM_H: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("v ", 	KC_NO); } break;
 	    case HRM_I: { MAGIC_STRING("on ",    	KC_NO); } break;
 	    case  KC_J: { MAGIC_STRING("oke ", 		KC_NO); } break;
 	    case  KC_K: { MAGIC_STRING("ind ", 		KC_NO); } break;
@@ -378,12 +398,15 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
 	    case  M_QU: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("mk ", KC_NO); } break;
+            tap_code(KC_BSPC);
+            MAGIC_STRING("QMK ", KC_NO); } break;
 	    case  KC_R: { MAGIC_STRING("r ", 		KC_NO); } break;
 	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
 	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
 	    case  KC_U: { MAGIC_STRING("e", 		KC_NO); } break;
-	    case HRM_V: { MAGIC_STRING("ote ", 		KC_NO); } break;
+	    case HRM_V: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING("h ", 		KC_NO); } break;
 	    case HRM_W: { MAGIC_STRING("ould ", 	KC_NO); } break;
 	    case  KC_X: {
             tap_code(KC_BSPC);
@@ -395,6 +418,24 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 		case KC_SPC: { MAGIC_STRING(" the", 	KC_NO); } break;
     }
 }
+
+static void process_hv_macro(uint16_t last_keycode, uint8_t mods) {
+    switch (last_keycode) {
+        case KC_A:
+        case KC_E:
+        case KC_I:
+        case KC_O:
+        case KC_U:
+            tap_code(KC_V);
+            set_last_keycode(KC_V);
+            break;
+        default:
+            tap_code(KC_H);
+            set_last_keycode(KC_H);
+            break;
+    }
+}
+
 
 bool caps_word_press_user(uint16_t keycode) {
   switch (keycode) {
@@ -460,6 +501,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
                 }
             }
             return false;
+
+        case M_HV:
+            if (record->event.pressed) {
+                process_hv_macro(get_last_keycode(), get_last_mods());
+            }
+            return false;
     }
 
     return true;
@@ -469,3 +516,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
 const key_override_t *key_overrides[] = {
   NULL
 };
+
+
+#ifdef CHORDAL_HOLD
+// Handedness for Chordal Hold.
+const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
+  LAYOUT_LR(
+  '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    , '*'    ,
+  '*'    , 'L'    , 'L'    , 'L'    , 'L'    , 'L'    , 'R'    , 'R'    , 'R'    , 'R'    , 'R'    , '*'    ,
+  '*'    , 'L'    , 'L'    , 'L'    , 'L'    , 'L'    , 'R'    , 'R'    , 'R'    , 'R'    , 'R'    , '*'    ,
+  '*'    , 'L'    , 'L'    , 'L'    , 'L'    , 'L'    , 'R'    , 'R'    , 'R'    , 'R'    , 'R'    , '*'    ,
+           'L'    , 'L'    , 'L'    , 'L'    , 'L'    , 'R'    , 'R'    , 'R'    , 'R'    , 'R'    ,
+                             'L'    , 'L'    , 'L'    , 'R'    , 'R'    , 'R'
+
+);
+#endif  // CHORDAL_HOLD
