@@ -7,7 +7,6 @@
         "**/.build": true,
         "**/*.hex": true,
         "**/*.bin": true,
-        "**/*.uf2": true,
         "**/.git": true,
         "**/lib": true,
         "**/tests": true,
