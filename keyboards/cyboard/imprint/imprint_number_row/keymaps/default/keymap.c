@@ -61,7 +61,8 @@ enum led_states {
     LAYER_EMPTY7,
     LAYER_EMPTY8,
     LAYER_GAME,
-    ACTION_CAPS_WORD
+    ACTION_CAPS_WORD,
+    ACTION_CAPS_LOCK
 };
 
 enum custom_keycodes {
@@ -148,7 +149,8 @@ void set_led_colors(enum led_states led_state) {
             // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
             return;
         case LAYER_CTRL:
-            rgb_matrix_sethsv(HSV_MAGENTA);   // Magenta for control layer
+            rgb_matrix_sethsv(HSV_YELLOW);   // Yellow for control layer
+            return;
         case LAYER_EMPTY7:
             rgb_matrix_sethsv(HSV_BLACK);
         case LAYER_EMPTY8:
@@ -160,6 +162,9 @@ void set_led_colors(enum led_states led_state) {
         case ACTION_CAPS_WORD:
             rgb_matrix_sethsv(HSV_BLUE);
             return;
+        case ACTION_CAPS_LOCK:
+            rgb_matrix_sethsv(HSV_RED);
+            return;
         default:
             rgb_matrix_sethsv(HSV_PURPLE);
             // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
@@ -170,7 +175,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  CUT,      PASTE,      COPY,       CTL_A,   UNDO,                      KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       KC_M,    M_VH,                      KC_SLSH,  KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
+        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,    M_VH,                    KC_SLSH,  KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                      KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
         OS_LSFT,  KC_X,     HRM_J,      KC_M,       HRM_D,   M_QU,                      KC_P,     HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
                             ALTTAB,     GUI_TAB,    KC_ESC,  KC_NO,   KC_ESC, KC_BTN1,  HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
@@ -301,6 +306,16 @@ void caps_word_set_user(bool active) {
         set_led_colors(get_highest_layer(layer_state));
     }
 }
+
+bool led_update_user(led_t led_state) {
+    if (led_state.caps_lock) {                // Caps Lock just turned ON
+        set_led_colors(ACTION_CAPS_LOCK);
+    } else if (!is_caps_word_on()) {          // avoid wiping the blue Caps-Word colour
+        set_led_colors(get_highest_layer(layer_state));
+    }
+    return true;  // let keyboard-level code (if any) run too
+}
+
 
 bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
                             uint8_t* remembered_mods) {
@@ -448,7 +463,7 @@ static void process_hv_macro(bool reverse, uint16_t last_keycode) {
 
     if (has_mods) {
         // With non-shift modifiers: M_HV always outputs H, M_VH always outputs V
-        out = reverse ? KC_V : KC_H;
+        out = reverse ? KC_H : KC_V;
     } else {
         // Normal behavior: check previous key
         bool vowel = is_prev_key_vowel(last_keycode);

@@ -28,3 +28,6 @@
 [submodule "modules/getreuer"]
 	path = modules/getreuer
 	url = https://github.com/getreuer/qmk-modules.git
+[submodule "qmk_keymap_overlay"]
+	path = qmk_keymap_overlay
+	url = https://github.com/omark96/qmk_keymap_overlay.git

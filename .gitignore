@@ -124,3 +124,6 @@ via*.json
 
 # Ignore my todo file
 todo.txt
+
+# Ignore the visualization tool
+/qmk_keymap_overlay
