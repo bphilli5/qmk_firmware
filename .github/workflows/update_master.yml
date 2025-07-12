@@ -1,0 +1,29 @@
+name: Sync upstream QMK master to fork
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # every Monday at 3am UTC
+  workflow_dispatch:     # allow manual trigger
+
+jobs:
+  sync-master:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout your fork
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://github.com/qmk/qmk_firmware.git
+          git fetch upstream
+
+      - name: Rebase master onto upstream/master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rebase upstream/master
+          git push origin master --force
