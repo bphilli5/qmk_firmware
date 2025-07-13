@@ -25,9 +25,7 @@
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
 
-#ifdef COMBO_ENABLE
-#define COMBO_COUNT 2  // Adjust this number based on how many combos you define
-#endif
+#define COMBO_COUNT 5  // Adjust this number based on how many combos you define
 
 // Suppress IntelliSense warnings for LAYOUT macros
 #ifdef __INTELLISENSE__
@@ -44,7 +42,7 @@ enum layer_names {
     _FUNC = 4,
     _MOUSE = 5,
     _CTRL = 6,
-    _EMPTY7 = 7,
+    _MEDIA = 7,
     _EMPTY8 = 8,
     _GAME = 9
 };
@@ -58,7 +56,7 @@ enum led_states {
     LAYER_FUNC,
     LAYER_MOUSE,
     LAYER_CTRL,
-    LAYER_EMPTY7,
+    LAYER_MEDIA,
     LAYER_EMPTY8,
     LAYER_GAME,
     ACTION_CAPS_WORD,
@@ -75,29 +73,36 @@ enum custom_keycodes {
 
     // Macros to handle h/v switcher
     M_HV,
-    M_VH
+    M_VH,
+
+    // Braces helper
+    BRACES,  // For sending braces with Shift/Ctrl/Alt/Gui
+
+    // Text selection
+    SELWORD,  // Select word
+    SELLINE,  // Select line
+
+    QUOP, // Quopostrokey
 
 };
-
 
 // Home Row Modifiers
 // Right Hand Side
 #define HRM_N LALT_T(KC_N)  // Home Row Modifier for N
 #define HRM_S LGUI_T(KC_S)  // Home Row Modifier for S
 #define HRM_H LSFT_T(KC_H)  // Home Row Modifier for H
-#define HRM_T LT(_NAV, KC_T)   // Home Row Modifier for T
+#define HRM_T LCTL_T(KC_T)   // Home Row Modifier for T
 #define HRM_R LT(_NAV, KC_R) // Home Row Modifier for R
 // Right Non Home Row Modifiers
-#define HRM_D LCTL_T(KC_D)  // Modifier for D
+#define HRM_D LT(_MEDIA, KC_D)  // Modifier for D
 #define HRM_J LT(_SYM, KC_J)   // Modifier for J
 
-
 // Left Hand Side
-#define HRM_C LT(_NUM, KC_C) // Home Row Modifier for C
+#define HRM_C LCTL_T(KC_C) // Home Row Modifier for C
 #define HRM_A RSFT_T(KC_A) // Home Row Modifier for A
 #define HRM_E RGUI_T(KC_E) // Home Row Modifier for E
 #define HRM_I RALT_T(KC_I) // Home Row Modifier for I
-#define HRM_SPC LT(_CTRL, KC_SPC) // Home Row Modifier for Space
+#define HRM_SPC LT(_NUM, KC_SPC) // Home Row Modifier for Space
 // Left Non Home Row Modifiers)
 #define HRM_W RCTL_T(KC_W) // Modifier for W
 #define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
@@ -105,16 +110,7 @@ enum custom_keycodes {
 #define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DEL
 #define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
 
-
 // Command shorthands
-#define CUT LCTL(KC_X) // Cut command
-#define COPY LCTL(KC_C) // Copy command
-#define PASTE LCTL(KC_V) // Paste command
-#define UNDO LCTL(KC_Z) // Undo command
-#define CTL_A LCTL(KC_A) // Control + A command
-#define ALTTAB LALT(KC_TAB) // Alt + Tab command
-#define GUI_TAB LGUI(KC_TAB) // GUI + Tab command
-#define FIND LCTL(KC_F) // Find command
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
 #define WINSWITCH LGUI(LSFT(KC_RGHT)) // Windows Switch command
@@ -151,8 +147,10 @@ void set_led_colors(enum led_states led_state) {
         case LAYER_CTRL:
             rgb_matrix_sethsv(HSV_YELLOW);   // Yellow for control layer
             return;
-        case LAYER_EMPTY7:
-            rgb_matrix_sethsv(HSV_BLACK);
+        case LAYER_MEDIA:
+            rgb_matrix_sethsv(HSV_WHITE); // White for media layer
+            rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_SPLASH);
+            return;
         case LAYER_EMPTY8:
             rgb_matrix_sethsv(HSV_BLACK);
         case LAYER_GAME:
@@ -174,12 +172,12 @@ void set_led_colors(enum led_states led_state) {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
-        RGB_TOG,  CUT,      PASTE,      COPY,       CTL_A,   UNDO,                      KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,    M_VH,                    KC_SLSH,  KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
-        KC_CAPS,  HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                      KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
-        OS_LSFT,  KC_X,     HRM_J,      KC_M,       HRM_D,   M_QU,                      KC_P,     HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
-                            ALTTAB,     GUI_TAB,    KC_ESC,  KC_NO,   KC_ESC, KC_BTN1,  HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
-                                                    LMAGIC,  HRM_R,   KC_ENT, KC_BSPC,  HRM_SPC,  RMAGIC
+        RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
+        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,  M_VH,                    BRACES,   KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
+        KC_Z,     HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                    KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
+        OS_LSFT,  KC_X,     HRM_J,      KC_M,       HRM_D,   M_QU,                    KC_P,     HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
+                            A(KC_TAB),  G(KC_TAB),  KC_ESC,  KC_NO,  KC_ESC, KC_BTN1, HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
+                                                    LMAGIC,  HRM_R,  KC_ENT, KC_BSPC, HRM_SPC,  RMAGIC
     ),
 
     // Layer 1 - Symbols
@@ -242,11 +240,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                      KC_TRNS,  KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,   RMAGIC
     ),
 
-    [_EMPTY7] = LAYOUT_num(
+    // Layer 7 - Media
+    [_MEDIA] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_VOLU,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_MPLY,    KC_MNXT,    KC_MPRV,    KC_MUTE,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_VOLD,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
     ),
@@ -272,17 +271,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // Combos
-const uint16_t PROGMEM TH_TAB[] = {HRM_T, HRM_H, COMBO_END};
-const uint16_t PROGMEM HA_CW[] = {HRM_H, HRM_A, COMBO_END};
-const uint16_t PROGMEM THS_WSW[] = {HRM_T, HRM_H, HRM_S, COMBO_END};
-const uint16_t PROGMEM NS_Z[] = {HRM_N, HRM_S, COMBO_END};
+const uint16_t PROGMEM TH_TAB[] =   {HRM_T, HRM_H, COMBO_END};
+const uint16_t PROGMEM HA_CW[] =    {HRM_H, HRM_A, COMBO_END};
+const uint16_t PROGMEM THS_WSW[] =  {HRM_T, HRM_H, HRM_S, COMBO_END};
+const uint16_t PROGMEM NS_Z[] =     {HRM_N, HRM_S, COMBO_END};
+const uint16_t PROGMEM SE_CAPS[] =  {HRM_S, HRM_E, COMBO_END};
+const uint16_t PROGMEM TC_SYM[] =   {HRM_C, HRM_T, COMBO_END};
+const uint16_t PROGMEM CA_SELW[] =  {HRM_C, HRM_A, SELWORD, COMBO_END};
+const uint16_t PROGMEM CA_SELL[] =  {HRM_C, HRM_A, HRM_E, SELLINE, COMBO_END};
 
 
 combo_t key_combos[] = {
     COMBO(TH_TAB, KC_TAB),
     COMBO(HA_CW,  CW_TOGG),
     COMBO(THS_WSW, WINSWITCH),
-    COMBO(NS_Z,   KC_Z)
+    COMBO(NS_Z,   KC_Z),
+    COMBO(SE_CAPS,   KC_CAPS),
+    COMBO(TC_SYM, OSL(_SYM)),
+    COMBO(CA_SELW, SELWORD),
+    COMBO(CA_SELL, SELLINE),
 };
 
 
@@ -508,7 +515,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     set_led_colors(get_highest_layer(state));
     return state;
 }
-// Add this function before process_record_user
 static bool process_qu_macro(uint16_t keycode, keyrecord_t* record) {
     static uint16_t q_timer;
 
@@ -547,8 +553,51 @@ static bool process_qu_macro(uint16_t keycode, keyrecord_t* record) {
     return false;
 }
 
+static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
+  static bool within_word = false;
+
+  if (keycode == QUOP) {
+    if (record->event.pressed) {
+      if (within_word) {
+        tap_code(KC_QUOT);
+      } else {
+        SEND_STRING("\"\"" SS_TAP(X_LEFT));
+      }
+    }
+    return false;
+  }
+
+  switch (keycode) {  // Unpack tapping keycode for tap-hold keys.
+#ifndef NO_ACTION_TAPPING
+    case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+      if (record->tap.count == 0) { return true; }
+      keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
+      break;
+#ifndef NO_ACTION_LAYER
+    case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+      if (record->tap.count == 0) { return true; }
+      keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
+      break;
+#endif  // NO_ACTION_LAYER
+#endif  // NO_ACTION_TAPPING
+  }
+
+  // Determine whether the key is a letter.
+  switch (keycode) {
+    case KC_A ... KC_Z:
+      within_word = true;
+      break;
+
+    default:
+      within_word = false;
+  }
+
+  return true;
+}
+
 // Then in process_record_user, replace the M_QU case with:
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    if (!process_quopostrokey(keycode, record)) { return false; }
     switch (keycode) {
         case HRM_H:
             if (record->tap.count && record->event.pressed) {
@@ -585,6 +634,38 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
 
         case M_QU:
             return process_qu_macro(keycode, record);
+        case BRACES: {                                       // (), [], {}, <> helper
+            if (record->event.pressed) {
+                uint8_t active_mods = get_mods() | get_oneshot_mods();
+
+                clear_oneshot_mods();
+                unregister_mods(MOD_MASK_CSAG);            // Ctrl-Shift-Alt-Gui
+
+                if (active_mods & MOD_MASK_SHIFT) {        // ⇧ → []
+                    SEND_STRING("[]");
+                } else if (active_mods & MOD_MASK_CTRL) {  // ⌃ → {}
+                    SEND_STRING("{}");
+                } else if (active_mods & MOD_MASK_ALT) {   // ⌥ → <>
+                    SEND_STRING("<>");
+                } else {                                   // (no mod) → ()
+                    SEND_STRING("()");
+                }
+                tap_code(KC_LEFT);                         // cursor inside the pair
+
+                register_mods(active_mods);
+            }
+            return false;          // Tell QMK we handled this key completely
+        }
+        case SELWORD:   // Select Word
+            if (record->event.pressed) {
+                SEND_STRING(SS_LCTL(SS_TAP(X_RGHT) SS_LSFT(SS_TAP(X_LEFT))));
+            }
+            return false;
+        case SELLINE:   // Select Line
+            if (record->event.pressed) {
+                SEND_STRING(SS_LCTL(SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END))));
+            }
+            return false;
     }
     return true;
 }
@@ -606,3 +687,71 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 
 );
 #endif  // CHORDAL_HOLD
+
+const custom_shift_key_t custom_shift_keys[] = {
+  {KC_DOT , KC_QUES},  // Shift . is ?
+  {KC_COMM, KC_SLSH},  // Shift , is /
+};
+
+#ifdef COMBO_MUST_TAP_PER_COMBO
+bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
+    // If you want all combos to be tap-only, just uncomment the next line
+    // return true
+
+    // If you want *all* combos, that have Mod-Tap/Layer-Tap/Momentary keys in its chord, to be tap-only, this is for you:
+    uint16_t key;
+    uint8_t idx = 0;
+    while ((key = pgm_read_word(&combo->keys[idx])) != COMBO_END) {
+        switch (key) {
+            case QK_MOD_TAP...QK_MOD_TAP_MAX:
+            case QK_LAYER_TAP...QK_LAYER_TAP_MAX:
+            case QK_MOMENTARY...QK_MOMENTARY_MAX:
+                return true;
+        }
+        idx += 1;
+    }
+    return false;
+
+}
+#endif
+
+
+
+char sentence_case_press_user(uint16_t keycode,
+                              keyrecord_t *record,
+                              uint8_t mods) {
+
+    /* 1️⃣ Ignore the *modifier key* itself – do nothing, don’t clear state.   */
+    if (keycode == KC_LSFT || keycode == KC_RSFT) {
+        return '\0';                // no state change, no classification
+    }
+
+    /* 2️⃣ Copy the stock logic, with one tweak for KC_DOT when shifted.       */
+    if ((mods & ~(MOD_MASK_SHIFT | MOD_BIT(KC_RALT))) == 0) {
+        const bool shifted = mods & MOD_MASK_SHIFT;
+
+        switch (keycode) {
+            case KC_A ... KC_Z:      return 'a';            // letters
+            /* -----------  OUR ONE-LINE CHANGE  ---------------------------- */
+            case KC_DOT:             return shifted ? '.'   // Shift-DOT = “?”
+                                                : '.';      // plain DOT
+            /* -------------------------------------------------------------- */
+            case KC_1:               /* fall through */
+            case KC_SLSH:            return shifted ? '.' : '#';
+            case KC_EXLM:
+            case KC_QUES:            return '.';
+            case KC_2 ... KC_0:
+            case KC_AT ... KC_RPRN:
+            case KC_MINS ... KC_SCLN:
+            case KC_UNDS ... KC_COLN:
+            case KC_GRV:
+            case KC_COMM:            return '#';
+            case KC_SPC:             return ' ';
+            case KC_QUOT:            return '\'';
+        }
+    }
+
+    /* Any other key (navigation, hot-key, etc.) → reset Sentence Case.        */
+    sentence_case_clear();
+    return '\0';
+}
