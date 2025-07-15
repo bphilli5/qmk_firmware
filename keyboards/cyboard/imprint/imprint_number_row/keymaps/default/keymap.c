@@ -173,9 +173,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,  M_VH,                    BRACES,   KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
+        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,  KC_J,                    BRACES,   KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
         KC_Z,     HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                    KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
-        OS_LSFT,  KC_X,     HRM_J,      KC_M,       HRM_D,   M_QU,                    KC_P,     HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
+        OS_LSFT,  KC_X,     KC_V,       KC_M,       HRM_D,   M_QU,                    KC_P,     HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
                             A(KC_TAB),  G(KC_TAB),  KC_ESC,  KC_NO,  KC_ESC, KC_BTN1, HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  HRM_R,  KC_ENT, KC_BSPC, HRM_SPC,  RMAGIC
     ),
@@ -460,34 +460,34 @@ static inline bool is_prev_key_vowel(uint16_t kc) {
     return false;
 }
 
-static void process_hv_macro(bool reverse, uint16_t last_keycode) {
-    uint8_t mods = get_mods();
-    bool has_mods = mods & (MOD_BIT(KC_LCTL) | MOD_BIT(KC_LALT) | MOD_BIT(KC_LGUI) |
-                           MOD_BIT(KC_RCTL) | MOD_BIT(KC_RALT) | MOD_BIT(KC_RGUI));
-    bool caps_word = is_caps_word_on();
+// static void process_hv_macro(bool reverse, uint16_t last_keycode) {
+//     uint8_t mods = get_mods();
+//     bool has_mods = mods & (MOD_BIT(KC_LCTL) | MOD_BIT(KC_LALT) | MOD_BIT(KC_LGUI) |
+//                            MOD_BIT(KC_RCTL) | MOD_BIT(KC_RALT) | MOD_BIT(KC_RGUI));
+//     bool caps_word = is_caps_word_on();
 
-    uint16_t out;
+//     uint16_t out;
 
-    if (has_mods) {
-        // With non-shift modifiers: M_HV always outputs H, M_VH always outputs V
-        out = reverse ? KC_H : KC_V;
-    } else {
-        // Normal behavior: check previous key
-        bool vowel = is_prev_key_vowel(last_keycode);
-        /*  regular   :  vowel ⇒ V , else ⇒ H
-            'reverse' :  vowel ⇒ H , else ⇒ V   */
-        out = (vowel ^ reverse) ? KC_V : KC_H;
-    }
+//     if (has_mods) {
+//         // With non-shift modifiers: M_HV always outputs H, M_VH always outputs V
+//         out = reverse ? KC_H : KC_V;
+//     } else {
+//         // Normal behavior: check previous key
+//         bool vowel = is_prev_key_vowel(last_keycode);
+//         /*  regular   :  vowel ⇒ V , else ⇒ H
+//             'reverse' :  vowel ⇒ H , else ⇒ V   */
+//         out = (vowel ^ reverse) ? KC_V : KC_H;
+//     }
 
-    // Apply shift if Caps Word is active
-    if (caps_word) {
-        tap_code16(S(out));
-    } else {
-        tap_code(out);
-    }
+//     // Apply shift if Caps Word is active
+//     if (caps_word) {
+//         tap_code16(S(out));
+//     } else {
+//         tap_code(out);
+//     }
 
-    set_last_keycode(out);
-}
+//     set_last_keycode(out);
+// }
 
 
 bool caps_word_press_user(uint16_t keycode) {
@@ -599,24 +599,24 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (!process_quopostrokey(keycode, record)) { return false; }
     switch (keycode) {
-        case HRM_H:
-            if (record->tap.count && record->event.pressed) {
-                process_hv_macro(false, get_last_keycode());
-                return false; // Prevent default tap behavior
-            }
-            break;
+        // case HRM_H:
+        //     if (record->tap.count && record->event.pressed) {
+        //         process_hv_macro(false, get_last_keycode());
+        //         return false; // Prevent default tap behavior
+        //     }
+        //     break;
 
-        case M_HV:
-            if (record->event.pressed) {
-                process_hv_macro(false, get_last_keycode());
-            }
-            return false;
+        // case M_HV:
+        //     if (record->event.pressed) {
+        //         process_hv_macro(false, get_last_keycode());
+        //     }
+        //     return false;
 
-        case M_VH:
-            if (record->event.pressed) {
-                process_hv_macro(true, get_last_keycode());
-            }
-            return false;
+        // case M_VH:
+        //     if (record->event.pressed) {
+        //         process_hv_macro(true, get_last_keycode());
+        //     }
+        //     return false;
 
         case LMAGIC:
             if (record->event.pressed) {
