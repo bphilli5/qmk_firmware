@@ -25,7 +25,7 @@
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
 
-#define COMBO_COUNT 5  // Adjust this number based on how many combos you define
+#define COMBO_COUNT 6  // Adjust this number based on how many combos you define
 
 // Suppress IntelliSense warnings for LAYOUT macros
 #ifdef __INTELLISENSE__
@@ -43,7 +43,7 @@ enum layer_names {
     _MOUSE = 5,
     _CTRL = 6,
     _MEDIA = 7,
-    _EMPTY8 = 8,
+    _ENTHIUM = 8,
     _GAME = 9
 };
 
@@ -57,7 +57,7 @@ enum led_states {
     LAYER_MOUSE,
     LAYER_CTRL,
     LAYER_MEDIA,
-    LAYER_EMPTY8,
+    LAYER_ENTHIUM,
     LAYER_GAME,
     ACTION_CAPS_WORD,
     ACTION_CAPS_LOCK
@@ -86,6 +86,34 @@ enum custom_keycodes {
 
 };
 
+// Add near your custom_keycodes enum
+typedef struct {
+    const char* base;
+    const char* variations[5];  // Adjust size as needed
+    uint8_t var_count;
+} word_variants_t;
+
+// Track last magic expansion
+static struct {
+    const word_variants_t* word;
+    uint8_t current_variant;
+    uint16_t base_length;
+    uint16_t repeat_keycode;  // Add this!
+} last_magic_state = {NULL, 0, 0, KC_NO};
+
+// Define word variants
+const word_variants_t word_expect = {
+    .base = "expect ",
+    .variations = {"expects ", "expected ", "expecting ", "expectation ", NULL},
+    .var_count = 4
+};
+
+const word_variants_t word_please = {
+    .base = "please ",
+    .variations = {"pleases ", "pleased ", "pleasing ", "pleasingly ", NULL},
+    .var_count = 4
+};
+
 // Home Row Modifiers
 // Right Hand Side
 #define HRM_N LALT_T(KC_N)  // Home Row Modifier for N
@@ -94,7 +122,7 @@ enum custom_keycodes {
 #define HRM_T LCTL_T(KC_T)   // Home Row Modifier for T
 #define HRM_R LT(_NAV, KC_R) // Home Row Modifier for R
 // Right Non Home Row Modifiers
-#define HRM_D LT(_MEDIA, KC_D)  // Modifier for D
+#define HRM_G LT(_SYM, KC_G)  // Modifier for G
 #define HRM_J LT(_SYM, KC_J)   // Modifier for J
 
 // Left Hand Side
@@ -107,7 +135,8 @@ enum custom_keycodes {
 #define HRM_W RCTL_T(KC_W) // Modifier for W
 #define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
 #define HRM_COMM KC_COMM //  Row Modifier for COMM
-#define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DEL
+#define HRM_BSPC LT(_FUNC, KC_BSPC) // Modifier for BSPC
+#define HRM_GEL LT(_FUNC, KC_DEL) // Modifier for DELs
 #define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
 
 // Command shorthands
@@ -151,8 +180,9 @@ void set_led_colors(enum led_states led_state) {
             rgb_matrix_sethsv(HSV_WHITE); // White for media layer
             rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_SPLASH);
             return;
-        case LAYER_EMPTY8:
-            rgb_matrix_sethsv(HSV_BLACK);
+        case LAYER_ENTHIUM:
+            rgb_matrix_sethsv(HSV_PURPLE);
+            return;
         case LAYER_GAME:
             rgb_matrix_mode_noeeprom(RGB_MATRIX_RAINBOW_BEACON);
             // rgb_matrix_sethsv(HSV_WHITE); // White for game layer
@@ -173,21 +203,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       QK_REP,  KC_J,                    BRACES,   KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
-        KC_Z,     HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                    KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
-        OS_LSFT,  KC_X,     KC_V,       KC_M,       HRM_D,   M_QU,                    KC_P,     HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
-                            A(KC_TAB),  G(KC_TAB),  KC_ESC,  KC_NO,  KC_ESC, KC_BTN1, HRM_DEL,  KC_BTN2,    KC_WBAK,    KC_WFWD,
-                                                    LMAGIC,  HRM_R,  KC_ENT, KC_BSPC, HRM_SPC,  RMAGIC
+        KC_TAB,   KC_B,     KC_F,       KC_L,       KC_D,    M_QU,                    QK_REP,   KC_Y,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
+        KC_Z,     HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                    KC_P,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
+        OS_LSFT,  KC_X,     KC_V,       KC_M,       HRM_G,   KC_J,                    BRACES,   HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
+                            A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
+                                                    LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
     ),
 
     // Layer 1 - Symbols
     [_SYM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  KC_GRV,       KC_EQL,         KC_BSLS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
-        KC_TRNS,  S(KC_1),      S(KC_8),        KC_NO,          KC_EQL,         KC_TRNS,                        LSFT(KC_3), LSFT(KC_9),    LSFT(KC_0),    KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_LBRC,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
-                                KC_TRNS,        KC_TRNS,        KC_TRNS,        QK_LLCK,    KC_TRNS,   KC_TRNS, QK_LLCK,    KC_TRNS,       KC_TRNS,       KC_TRNS,
-                                                                KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS
+        KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
+        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        LSFT(KC_3), LSFT(KC_9),    LSFT(KC_0),    KC_TRNS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_UNDS,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
+                                KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,
+                                                                QK_LLCK,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    QK_LLCK
     ),
 
     // Layer 2 - Navigation
@@ -196,8 +226,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGUP,  KC_HOME,    KC_UP,      KC_END,     LCTL(KC_F), KC_TRNS,
         KC_TRNS,  KC_LALT,    KC_TRNS,    KC_LSFT,    KC_LCTL,    KC_TRNS,                       KC_PGDN,  KC_LEFT,    KC_DOWN,    KC_RGHT,    KC_DEL,     KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_PGUP,    KC_PGDN,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_LLCK,    KC_TRNS, KC_TRNS,  QK_LLCK,  KC_TRNS,    KC_TRNS,    KC_TRNS,
-                                                      KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
+                              KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                                                      QK_LLCK,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  QK_LLCK
     ),
 
     // Layer 3 - Numbers
@@ -206,18 +236,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_MINS,    KC_1,       KC_2,       KC_3,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_X,       KC_4,       KC_5,       KC_6,       LSFT(KC_5),                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_LLCK,   KC_TRNS,    KC_TRNS,   QK_LLCK,  KC_TRNS,    KC_TRNS,    KC_TRNS,
-                                                      KC_TRNS,    KC_0,      KC_TRNS,    KC_TRNS,   KC_TRNS,  KC_TRNS
+                              KC_TRNS,    KC_TRNS,    KC_0,       KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                                                      QK_LLCK,    KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,  QK_LLCK
     ),
 
     // Layer 4 - Function keys
     [_FUNC] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_BOOT,
-        KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(_BASE),
+        KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   QK_BOOT,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   TO(_ENTHIUM),  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_LLCK, KC_TRNS, KC_TRNS, QK_LLCK,  KC_TRNS,   KC_TRNS,    KC_TRNS,
-                                                      KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS
+                              KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,
+                                                      QK_LLCK,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  QK_LLCK
     ),
 
     // Layer 5 - Mouse
@@ -226,8 +256,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_BTN1,    KC_MS_U,    KC_BTN2,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_MS_L,    KC_MS_D,    KC_MS_R,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,    QK_LLCK,    KC_TRNS, KC_TRNS,  QK_LLCK,  KC_TRNS,    KC_TRNS,    KC_TRNS,
-                                                      KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,KC_TRNS,   KC_TRNS
+                              KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                                                      QK_LLCK,    KC_TRNS,    KC_TRNS, KC_TRNS,  QK_LLCK,   KC_TRNS
     ),
 
     // Layer 6 - Control
@@ -250,13 +280,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                       KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
     ),
 
-    [_EMPTY8] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
-                                                      KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
+    [_ENTHIUM] = LAYOUT_num(
+        KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS,                   KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, TO(_BASE),
+        KC_TRNS,  KC_Z,    KC_W,    KC_D,     KC_L,    KC_X,                      BRACES,   KC_O,    KC_U,    KC_Y,    M_QU,    KC_TRNS,
+        KC_V,     KC_S,    KC_N,    KC_T,     KC_H,    KC_K,                      KC_COMM,  KC_A,    KC_E,    KC_I,    KC_C,    KC_B,
+        KC_TRNS,  KC_F,    KC_P,    KC_G,     KC_M,    KC_J,                      KC_SCLN,  KC_DOT,  KC_EQL,  KC_MINS, QUOP,    KC_TRNS,
+                           KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,
+                                                       KC_TRNS, KC_R,    KC_TRNS, KC_TRNS,  KC_TRNS, KC_TRNS
     ),
 
     // Layer 9 - GAME layer
@@ -277,9 +307,9 @@ const uint16_t PROGMEM THS_WSW[] =  {HRM_T, HRM_H, HRM_S, COMBO_END};
 const uint16_t PROGMEM NS_Z[] =     {HRM_N, HRM_S, COMBO_END};
 const uint16_t PROGMEM SE_CAPS[] =  {HRM_S, HRM_E, COMBO_END};
 const uint16_t PROGMEM TC_SYM[] =   {HRM_C, HRM_T, COMBO_END};
-const uint16_t PROGMEM CA_SELW[] =  {HRM_C, HRM_A, SELWORD, COMBO_END};
-const uint16_t PROGMEM CA_SELL[] =  {HRM_C, HRM_A, HRM_E, SELLINE, COMBO_END};
-
+const uint16_t PROGMEM CA_SELW[] =  {HRM_C, HRM_A, COMBO_END};
+const uint16_t PROGMEM CAE_SELL[] = {HRM_C, HRM_A, HRM_E, COMBO_END};
+const uint16_t PROGMEM DM_BSPC[] =  {HRM_G, KC_M, COMBO_END};
 
 combo_t key_combos[] = {
     COMBO(TH_TAB, KC_TAB),
@@ -289,7 +319,8 @@ combo_t key_combos[] = {
     COMBO(SE_CAPS,   KC_CAPS),
     COMBO(TC_SYM, OSL(_SYM)),
     COMBO(CA_SELW, SELWORD),
-    COMBO(CA_SELL, SELLINE),
+    COMBO(CAE_SELL, SELLINE),
+    COMBO(DM_BSPC, KC_BSPC),
 };
 
 
@@ -365,61 +396,122 @@ static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
   }
 }
 
+
+// Add new macro for cycling words
+#define MAGIC_STRING_VAR(word_var, repeat_keycode) \
+    magic_send_string_var(&word_var, (repeat_keycode))
+
+// Modified cycling version that accepts repeat_keycode
+static void magic_send_string_var(const word_variants_t* word, uint16_t repeat_keycode) {
+    uprintf("MAGIC_STRING_VAR: word=%s, previous_variant=%d\n",
+            word->base, last_magic_state.current_variant);
+    last_magic_state.word = word;
+    last_magic_state.current_variant = 0;
+    last_magic_state.base_length = strlen(word->base);
+    last_magic_state.repeat_keycode = repeat_keycode;  // Save it!
+
+    // Send the base form
+    uint8_t saved_mods = 0;
+    if (is_caps_word_on()) {
+        saved_mods = get_mods();
+        register_mods(MOD_BIT(KC_LSFT));
+    }
+
+    send_string_with_delay(word->base, TAP_CODE_DELAY);
+    set_last_keycode(repeat_keycode);  // Preserve this functionality!
+
+    if (is_caps_word_on()) {
+        set_mods(saved_mods);
+    }
+}
+
+// Update cycle function to also set last keycode
+static void cycle_last_magic(void) {
+    if (!last_magic_state.word) return;
+
+    // Calculate how many backspaces needed
+    uint16_t current_length = (last_magic_state.current_variant == 0)
+        ? last_magic_state.base_length
+        : strlen(last_magic_state.word->variations[last_magic_state.current_variant - 1]);
+
+    // Backspace current word
+    for (uint16_t i = 0; i < current_length; i++) {
+        tap_code(KC_BSPC);
+    }
+
+    // Move to next variant
+    last_magic_state.current_variant++;
+    if (last_magic_state.current_variant > last_magic_state.word->var_count) {
+        last_magic_state.current_variant = 0;
+    }
+
+    // Send new variant
+    const char* to_send = (last_magic_state.current_variant == 0)
+        ? last_magic_state.word->base
+        : last_magic_state.word->variations[last_magic_state.current_variant - 1];
+
+    send_string(to_send);
+    set_last_keycode(last_magic_state.repeat_keycode);  // Use saved keycode
+}
+
 static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC definitions
+    last_magic_state.word = NULL;  // Reset last magic state
     switch (keycode) {
 		case HRM_A: { MAGIC_STRING("ll ", 		KC_SPC); } break;
-	    case  KC_B: { MAGIC_STRING("ecause ",	KC_NO); } break;
-	    case HRM_C: { MAGIC_STRING("opy ",		KC_NO); } break;
-	    case HRM_D: { MAGIC_STRING("eath ", 		KC_NO); } break;
-		case HRM_E: { MAGIC_STRING("very ",			KC_NO); } break;
-	    case  KC_F: { MAGIC_STRING("amily ", 		KC_NO); } break;
-	    case  KC_G: {
+	    case  KC_B: { MAGIC_STRING("ecause ",	KC_SPC); } break;
+	    case HRM_C: { MAGIC_STRING("opy ",		KC_SPC); } break;
+	    case  KC_D: { MAGIC_STRING("eath ", 		KC_SPC); } break;
+		case HRM_E: { MAGIC_STRING("very ",			KC_SPC); } break;
+	    case  KC_F: { MAGIC_STRING("amily ", 		KC_SPC); } break;
+	    case  HRM_G: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("GiveWell ", 	KC_NO); } break;
-		case  KC_H: { MAGIC_STRING("ouse ", 		KC_NO); } break;
-		case HRM_I: { MAGIC_STRING("ng ", 		KC_NO); } break;
-	    case  KC_J: { MAGIC_STRING("ust",		KC_NO); } break;
-	    case  KC_K: { MAGIC_STRING("now ", 		KC_NO); } break;
-	    case  KC_L: { MAGIC_STRING("ove ", 		KC_NO); } break;
-	    case  KC_M: { MAGIC_STRING("ent ",		KC_NO); } break;
-	    case HRM_N: { MAGIC_STRING("ever ",		KC_NO); } break;
-		case  KC_O: { MAGIC_STRING("rder ", 		KC_NO); } break;
-	    case  KC_P: { MAGIC_STRING("lease ",    	KC_NO); } break;
-		case  M_QU: { MAGIC_STRING("estion ", 		KC_NO); } break;
-	    case  KC_R: { MAGIC_STRING("the", 		KC_NO); } break;
-	    case HRM_S: { MAGIC_STRING("ome ", 		KC_NO); } break;
-        case HRM_T: { MAGIC_STRING("hough ", 		KC_NO); } break;
-		case  KC_U: { MAGIC_STRING("nder ", 		KC_NO); } break;
-	    case  KC_V: { MAGIC_STRING("ery",	        KC_NO); } break;
-	    case HRM_W: { MAGIC_STRING("hich ",		KC_NO); } break;
-		case  KC_X: {
+            MAGIC_STRING("GiveWell ", 	KC_SPC); } break;
+		case  KC_H: { MAGIC_STRING("ouse ", 		KC_SPC); } break;
+		case HRM_I: { MAGIC_STRING("ng ", 		KC_SPC); } break;
+	    case  KC_J: { MAGIC_STRING("ust",		KC_SPC); } break;
+	    case  KC_K: { MAGIC_STRING("now ", 		KC_SPC); } break;
+	    case  KC_L: { MAGIC_STRING("ove ", 		KC_SPC); } break;
+	    case  KC_M: { MAGIC_STRING("ent ",		KC_SPC); } break;
+	    case HRM_N: { MAGIC_STRING("ever ",		KC_SPC); } break;
+		case  KC_O: { MAGIC_STRING("rder ", 		KC_SPC); } break;
+	    case  KC_P: { MAGIC_STRING("eople ",    	KC_SPC); } break;
+		case  M_QU: { MAGIC_STRING("estion ", 		KC_SPC); } break;
+	    case  KC_R: { MAGIC_STRING("the", 		KC_SPC); } break;
+	    case HRM_S: { MAGIC_STRING("ome ", 		KC_SPC); } break;
+        case HRM_T: { MAGIC_STRING("hough ",		KC_SPC); } break;
+		case  KC_U: { MAGIC_STRING("nder ", 		KC_SPC); } break;
+	    case  KC_V: { MAGIC_STRING("ery",	        KC_SPC); } break;
+	    case HRM_W: { MAGIC_STRING("hich ",		KC_SPC); } break;
+		case KC_X: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("exactly ", KC_NO); } break;
-		case  KC_Y: { MAGIC_STRING("ou ", 		KC_NO); } break;
-	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_NO); } break;
-        case  KC_SPC: { MAGIC_STRING("the ", 		KC_NO); } break;
-        case HRM_SPC: { MAGIC_STRING("the ", 		KC_NO); } break;
-		case HRM_COMM: { MAGIC_STRING(" and ",    KC_NO); } break;
+            MAGIC_STRING_VAR(word_expect, KC_SPC);
+            } break;
+		case  KC_Y: { MAGIC_STRING("ou ", 		KC_SPC); } break;
+	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_SPC); } break;
+        case  KC_SPC: { MAGIC_STRING("the ", 		KC_SPC); } break;
+        case HRM_SPC: { MAGIC_STRING("the ", 		KC_SPC); } break;
+		case HRM_COMM: { MAGIC_STRING(" and ",    KC_SPC); } break;
     }
 }
 
 static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC definitions
+    last_magic_state.word = NULL;  // Reset last magic state
     switch (keycode) {
-	    case HRM_A: { MAGIC_STRING("nd ",     	KC_NO); } break;
+	    case HRM_A: { MAGIC_STRING("nd ",     	KC_SPC); } break;
 	    case  KC_B: { MAGIC_STRING("s", 		KC_NO); } break;
 	    case HRM_C: { MAGIC_STRING("y", 		KC_NO); } break;
-	    case HRM_D: { MAGIC_STRING("d", 		KC_NO); } break;
+	    case  KC_D: { MAGIC_STRING("d", 		KC_NO); } break;
 	    case HRM_E: { MAGIC_STRING("e", 		KC_NO); } break;
 	    case  KC_F: { MAGIC_STRING("f", 		KC_NO); } break;
-	    case  KC_G: { MAGIC_STRING("y", 		KC_NO); } break;
-	    case  KC_H: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING("v", 	KC_NO); } break;
-	    case HRM_I: { MAGIC_STRING("on ",    	KC_NO); } break;
-	    case  KC_J: { MAGIC_STRING("oke ", 		KC_NO); } break;
-	    case  KC_K: { MAGIC_STRING("ind ", 		KC_NO); } break;
+	    case HRM_G: { MAGIC_STRING("y", 		KC_NO); } break;
+	    // case  KC_H: {
+        //     tap_code(KC_BSPC);
+        //     MAGIC_STRING("v", 	KC_NO); } break;
+	    case HRM_I: { MAGIC_STRING("on ",    	KC_SPC); } break;
+	    case  KC_J: { MAGIC_STRING("oke ", 		KC_SPC); } break;
+	    case  KC_K: { MAGIC_STRING("ind ", 		KC_SPC); } break;
 	    case  KC_L: { MAGIC_STRING("l", 		KC_NO); } break;
-	    case  KC_M: { MAGIC_STRING("ing ", 		KC_NO); } break;
+	    case  KC_M: { MAGIC_STRING("ing ", 		KC_SPC); } break;
 	    case HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
 	    case  KC_O: { MAGIC_STRING("a", 		KC_NO); } break;
 	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
@@ -434,15 +526,17 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC defin
 	    case  KC_V: {
             tap_code(KC_BSPC);
             MAGIC_STRING("h", 		KC_NO); } break;
-	    case HRM_W: { MAGIC_STRING("ould ", 	KC_NO); } break;
-	    case  KC_X: {
+	    case HRM_W: { MAGIC_STRING("ould ", 	KC_SPC); } break;
+	    case KC_X: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("expect ", KC_NO); } break;
+            MAGIC_STRING_VAR(word_expect, KC_SPC);
+            } break;
 	    case  KC_Y: { MAGIC_STRING("o",    	KC_NO); } break;
 	    case  KC_Z: { MAGIC_STRING("z", 		KC_NO); } break;
 
-	    case HRM_COMM: { MAGIC_STRING(" but",    KC_NO); } break;
-		case KC_SPC: { MAGIC_STRING(" the", 	KC_NO); } break;
+	    case HRM_COMM: { MAGIC_STRING(" but",    KC_SPC); } break;
+		case KC_SPC: { MAGIC_STRING("the ", 	KC_SPC); } break;
+        case HRM_SPC: { MAGIC_STRING("the ", 	KC_SPC); } break;
     }
 }
 
@@ -595,9 +689,37 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-// Then in process_record_user, replace the M_QU case with:
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    if (record->event.pressed) {
+        uprintf("Processing key: %u, repeat count: %d\n", keycode, get_repeat_key_count());
+    }
+
     if (!process_quopostrokey(keycode, record)) { return false; }
+
+    // Handle space key when it's being repeated
+    if (keycode == KC_SPC && get_repeat_key_count() > 0) {
+        uprintf("Space is being repeated! Magic state: %s\n",
+               last_magic_state.word ? "exists" : "null");
+
+        if (last_magic_state.word && record->event.pressed) {
+            uprintf("Cycling magic word instead of repeating space\n");
+            cycle_last_magic();
+            return false;  // Don't send the space
+        }
+        // Otherwise, let normal space repeat happen
+    }
+    if (record->event.pressed) {
+        uprintf("Key pressed: %u\n", keycode);
+        switch (keycode) {
+            case LMAGIC:
+            case RMAGIC:
+            case QK_REP:
+                break;                /* keep cycling */
+            default:
+                last_magic_state.word = NULL;
+                break;
+        }
+    }
     switch (keycode) {
         // case HRM_H:
         //     if (record->tap.count && record->event.pressed) {
@@ -621,14 +743,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         case LMAGIC:
             if (record->event.pressed) {
                 process_left_magic(get_last_keycode(), get_last_mods());
-                set_last_keycode(KC_SPC);
             }
             return false;
 
         case RMAGIC:
             if (record->event.pressed) {
+                // uprintf("RMAGIC pressed! Last key: %u\n", get_last_keycode());
                 process_right_magic(get_last_keycode(), get_last_mods());
-                set_last_keycode(KC_SPC);
             }
             return false;
 
@@ -666,6 +787,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
                 SEND_STRING(SS_LCTL(SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END))));
             }
             return false;
+        case QK_REP:
+            if (record->event.pressed) {
+                // Add debug
+                if (last_magic_state.word) {
+                    uprintf("REP: word exists, variant=%d\n", last_magic_state.current_variant);
+                    cycle_last_magic();
+                    return false;
+                } else {
+                    uprintf("REP: no word stored\n");
+                }
+    }
+    break;
     }
     return true;
 }
@@ -691,6 +824,7 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 const custom_shift_key_t custom_shift_keys[] = {
   {KC_DOT , KC_QUES},  // Shift . is ?
   {KC_COMM, KC_SLSH},  // Shift , is /
+  {KC_BSPC, KC_DEL},   // Shift Backspace is Delete]
 };
 
 #ifdef COMBO_MUST_TAP_PER_COMBO
