@@ -25,7 +25,7 @@
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
 
-#define COMBO_COUNT 6  // Adjust this number based on how many combos you define
+#define COMBO_COUNT 7  // Adjust this number based on how many combos you define
 
 // Suppress IntelliSense warnings for LAYOUT macros
 #ifdef __INTELLISENSE__
@@ -101,48 +101,396 @@ static struct {
     uint16_t repeat_keycode;  // Add this!
 } last_magic_state = {NULL, 0, 0, KC_NO};
 
-// Define word variants
-const word_variants_t word_expect = {
-    .base = "expect ",
-    .variations = {"expects ", "expected ", "expecting ", "expectation ", NULL},
+// Define word variants - expanded set
+// Letter A
+const word_variants_t word_all = {
+    .base = "all ",
+    .variations = {"allow ", "allows ", "allowed ", "allowing ", "allowance "},
+    .var_count = 5
+};
+
+const word_variants_t word_again = {
+    .base = "again ",
+    .variations = {"against ", NULL, NULL, NULL, NULL},
+    .var_count = 1
+};
+
+// Letter B
+// const word_variants_t word_between = {
+//     .base = "between ",
+//     .variations = {"betwixt ", NULL, NULL, NULL, NULL},
+//     .var_count = 1
+// };
+
+const word_variants_t word_become = {
+    .base = "become ",
+    .variations = {"became ", "becoming ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+// Letter C
+const word_variants_t word_copy = {
+    .base = "copy ",
+    .variations = {"copies ", "copied ", "copying ", "copier ", NULL},
     .var_count = 4
 };
 
-const word_variants_t word_please = {
-    .base = "please ",
-    .variations = {"pleases ", "pleased ", "pleasing ", "pleasingly ", NULL},
+const word_variants_t word_country = {
+    .base = "country ",
+    .variations = {"countries ", "country's ", "countrywide ", "countryside ", NULL},
+    .var_count = 4
+};
+
+// Letter D
+const word_variants_t word_death = {
+    .base = "death ",
+    .variations = {"deaths ", "deathly ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_difference = {
+    .base = "difference ",
+    .variations = {"differences ", "differential ", "differentiated ", "differentiation ", NULL},
+    .var_count = 4
+};
+
+// Letter E
+const word_variants_t word_every = {
+    .base = "every ",
+    .variations = {"everyone ", "everything ", "everywhere ", "everybody ", "everyday "},
+    .var_count = 5
+};
+
+const word_variants_t word_example = {
+    .base = "example ",
+    .variations = {"examples ", "exemplary ", "exemplify ", "exemplification ", NULL},
+    .var_count = 4
+};
+
+// Letter F
+const word_variants_t word_family = {
+    .base = "family ",
+    .variations = {"families ", "familial ", "familiar ", "familiarity ", NULL},
+    .var_count = 4
+};
+
+const word_variants_t word_find = {
+    .base = "find ",
+    .variations = {"found ", "finds ", "finding ", "findings ", NULL},
+    .var_count = 4
+};
+
+// Letter G
+const word_variants_t word_givewell = {
+    .base = "GiveWell ",
+    .variations = {"GiveWell's ", "GiveWell.org ", "GiveWell-style ", "GiveWell-inspired ", NULL},
+    .var_count = 4
+};
+
+const word_variants_t word_government = {
+    .base = "government ",
+    .variations = {"governments ", "government's ", "governmental ", NULL, NULL},
+    .var_count = 3
+};
+
+// Letter H
+const word_variants_t word_house = {
+    .base = "house ",
+    .variations = {"houses ", "housed ", "housing ", "household ", NULL},
+    .var_count = 4
+};
+
+// const word_variants_t word_however = {
+//     .base = "however ",
+//     .variations = {"howevers ", "however's ", NULL, NULL, NULL},
+//     .var_count = 2
+// };
+
+// Letter I
+const word_variants_t ending_ing = {
+    .base = "ing ",
+    .variations = {"ings ", "ingly ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_include = {
+    .base = "include ",
+    .variations = {"includes ", "included ", "including ", NULL, NULL},
+    .var_count = 3
+};
+
+// Letter J
+const word_variants_t word_just = {
+    .base = "just ",
+    .variations = {"justify ", "justified ", "justifying ", "justification ", "justice "},
+    .var_count = 5
+};
+
+const word_variants_t word_join = {
+    .base = "join ",
+    .variations = {"joins ", "joined ", "joining ", "joint ", NULL},
+    .var_count = 4
+};
+
+// Letter K
+const word_variants_t word_know = {
+    .base = "know ",
+    .variations = {"knows ", "knew ", "knowing ", "known ", "knowledge "},
+    .var_count = 5
+};
+
+const word_variants_t word_key = {
+    .base = "key ",
+    .variations = {"keys ", "keyed ", "keying ", "keynote ", "keypad "},
+    .var_count = 5
+};
+
+// Letter L
+// const word_variants_t word_later = {
+//     .base = "love ",
+//     .variations = {"loves ", "loved ", "loving ", "lovely ", "lover "},
+//     .var_count = 5
+// };
+
+const word_variants_t word_large = {
+    .base = "large ",
+    .variations = {"larger ", "largest ", "largely ", "largeness ", NULL},
+    .var_count = 4
+};
+
+// Letter M
+const word_variants_t ending_ment = {
+    .base = "ment ",
+    .variations = {"ments ", "mental ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_make = {
+    .base = "make ",
+    .variations = {"makes ", "made ", "making ", "makeover ", NULL},
+    .var_count = 4
+};
+
+// Letter N
+const word_variants_t word_never = {
+    .base = "never ",
+    .variations = {"nevertheless ", "nevermore ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_number = {
+    .base = "number ",
+    .variations = {"numbers ", "numbered ", "numbering ", "numerical ", NULL},
+    .var_count = 4
+};
+
+// Letter O
+const word_variants_t word_order = {
+    .base = "order ",
+    .variations = {"orders ", "ordered ", "ordering ", "orderly ", "disorder "},
+    .var_count = 5
+};
+
+const word_variants_t word_other = {
+    .base = "other ",
+    .variations = {"others ", "other's ", "othering ", "otherness ", NULL},
+    .var_count = 4
+};
+
+// Letter P
+// const word_variants_t word_people = {
+//     .base = "people ",
+//     .variations = {"person ", "personal ", "personally ", "personnel ", "personalize "},
+//     .var_count = 5
+// };
+
+const word_variants_t word_prompt = {
+    .base = "prompt ",
+    .variations = {"prompts ", "prompted ", "prompting ", "promptness ", NULL},
+    .var_count = 4
+};
+
+// Letter Q
+const word_variants_t word_question = {
+    .base = "question ",
+    .variations = {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "},
+    .var_count = 5
+};
+
+const word_variants_t word_qmk = {
+    .base = "QMK ",
+    .variations = {"QMK compile ", NULL, NULL, NULL, NULL},
+    .var_count = 1
+};
+
+// Letter R
+const word_variants_t ending_r = {
+    .base = " the ",
+    .variations = {" these ", " there ", " then ", " them ", " they "},
+    .var_count = 5
+};
+
+// LMAGIC is an SFB
+
+// Letter S
+const word_variants_t word_some = {
+    .base = "some ",
+    .variations = {"something ", "someone ", "somewhere ", "somehow ", "somebody "},
+    .var_count = 5
+};
+
+// const word_variants_t word_some = {
+//     .base = "some ",
+//     .variations = {"something ", "someone ", "somewhere ", "somehow ", "somebody "},
+//     .var_count = 5
+// };
+
+// Letter T
+const word_variants_t word_though = {
+    .base = "though ",
+    .variations = {"thought ", "thoughts ", "through ", NULL, NULL},
+    .var_count = 3
+};
+
+const word_variants_t ending_tion = {
+    .base = "tion ",
+    .variations = {"tions ", "tional ", "tionally ", NULL, NULL},
+    .var_count = 3
+};
+
+// Letter U
+const word_variants_t word_under = {
+    .base = "under ",
+    .variations = {"understand ", "understood ", "understanding ", "underneath ", "underway "},
+    .var_count = 5
+};
+
+const word_variants_t word_use = {
+    .base = "use ",
+    .variations = {"uses ", "used ", "using ", "usability ", "user "},
+    .var_count = 5
+};
+
+// Letter V
+const word_variants_t word_very = {
+    .base = "very ",
+    .variations = {"verify ", "verified ", "verifying ", "verification ", NULL},
+    .var_count = 4
+};
+
+const word_variants_t word_value = {
+    .base = "value ",
+    .variations = {"values ", "valued ", "valuing ", "valuation ", NULL},
+    .var_count = 4
+};
+
+// Letter W
+const word_variants_t word_with = {
+    .base = "with ",
+    .variations = {"without ", "within ", "withstand ", "withheld ", "withering "},
+    .var_count = 5
+};
+
+// Letter X
+const word_variants_t word_expect = {
+    .base = "expect ",
+    .variations = {"expects ", "expected ", "expecting ", "expectation ", "expectedly "},
+    .var_count = 5
+};
+const word_variants_t word_except = {
+    .base = "except ",
+    .variations = {"exception ", "exceptions ", "excepting ", NULL, NULL},
+    .var_count = 3
+};
+
+// Letter Y
+const word_variants_t word_year = {
+    .base = "year ",
+    .variations = {"years ", "yearly ", "yearn ", "yearning ", NULL},
+    .var_count = 4
+};
+
+// const word_variants_t word_year = {
+//     .base = "year ",
+//     .variations = {"years ", "yearly ", "yearn ", "yearning ", NULL},
+//     .var_count = 4
+// };
+
+// Letter Z
+const word_variants_t ending_ation = {
+    .base = "ation ",
+    .variations = {"ational ", "ationally ", "ations ", NULL, NULL},
+    .var_count = 3
+};
+
+const word_variants_t word_the = {
+    .base = "the ",
+    .variations = {" these ", " there ", " then ", " them ", " they "},
+    .var_count = 5
+};
+
+// const word_variants_t word_and = {
+//     .base = "and ",
+//     .variations = {"android ", "another ", "any ", "anyone ", "anything "},
+//     .var_count = 5
+// };
+
+const word_variants_t word_would = {
+    .base = "would ",
+    .variations = {"wouldn't ", "would've ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_ing = {
+    .base = "ing ",
+    .variations = {"ingly ", "ings ", NULL, NULL, NULL},
+    .var_count = 2
+};
+
+const word_variants_t word_on = {
+    .base = "on ",
+    .variations = {"one ", "only ", "once ", "onto ", "online "},
+    .var_count = 5
+};
+
+const word_variants_t word_kind = {
+    .base = "kind ",
+    .variations = {"kinds ", "kindly ", "kindness ", "kinder ", NULL},
     .var_count = 4
 };
 
 // Home Row Modifiers
 // Right Hand Side
-#define HRM_N LALT_T(KC_N)  // Home Row Modifier for N
-#define HRM_S LGUI_T(KC_S)  // Home Row Modifier for S
-#define HRM_H LSFT_T(KC_H)  // Home Row Modifier for H
-#define HRM_T LCTL_T(KC_T)   // Home Row Modifier for T
+#define HRM_S LALT_T(KC_S)  // Home Row Modifier for S
+#define HRM_N LGUI_T(KC_N)  // Home Row Modifier for N
+#define HRM_T LSFT_T(KC_T)  // Home Row Modifier for T
+#define HRM_H LCTL_T(KC_H)   // Home Row Modifier for H
 #define HRM_R LT(_NAV, KC_R) // Home Row Modifier for R
 // Right Non Home Row Modifiers
-#define HRM_G LT(_SYM, KC_G)  // Modifier for G
-#define HRM_J LT(_SYM, KC_J)   // Modifier for J
+#define HRM_M LT(_SYM, KC_M)  // Modifier for M
+// #define HRM_J LT(_SYM, KC_J)   // Modifier for J
 
 // Left Hand Side
-#define HRM_C LCTL_T(KC_C) // Home Row Modifier for C
-#define HRM_A RSFT_T(KC_A) // Home Row Modifier for A
-#define HRM_E RGUI_T(KC_E) // Home Row Modifier for E
-#define HRM_I RALT_T(KC_I) // Home Row Modifier for I
+#define HRM_A LCTL_T(KC_A) // Home Row Modifier for A
+#define HRM_E RSFT_T(KC_E) // Home Row Modifier for E
+#define HRM_I RGUI_T(KC_I) // Home Row Modifier for I
+#define HRM_C RALT_T(KC_C) // Home Row Modifier for C
 #define HRM_SPC LT(_NUM, KC_SPC) // Home Row Modifier for Space
-// Left Non Home Row Modifiers)
-#define HRM_W RCTL_T(KC_W) // Modifier for W
-#define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
-#define HRM_COMM KC_COMM //  Row Modifier for COMM
+// Left Non Home Row Modifiers
+// #define HRM_W LT(_SYM, KC_W) // Modifier for W
+// #define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
+// #define HRM_COMM KC_COMM //  Row Modifier for COMM
 #define HRM_BSPC LT(_FUNC, KC_BSPC) // Modifier for BSPC
-#define HRM_GEL LT(_FUNC, KC_DEL) // Modifier for DELs
+#define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DELs
 #define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
 
 // Command shorthands
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
 #define WINSWITCH LGUI(LSFT(KC_RGHT)) // Windows Switch command
+
+// Adaptive term for quick typing
+#define ADAPTIVE_TERM_MS 250  // Only trigger if typed quickly (250ms)
 
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
@@ -203,9 +551,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_B,     KC_F,       KC_L,       KC_D,    M_QU,                    QK_REP,   KC_Y,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
-        KC_Z,     HRM_N,    HRM_S,      HRM_H,      HRM_T,   KC_K,                    KC_P,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
-        OS_LSFT,  KC_X,     KC_V,       KC_M,       HRM_G,   KC_J,                    BRACES,   HRM_W,      QUOP,       HRM_SCLN,   HRM_COMM,   OS_RSFT,
+        KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_SCLN,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
+        KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    QK_REP,   HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
+        OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       KC_DOT,     KC_COMM,    OS_RSFT,
                             A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
     ),
@@ -244,7 +592,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_FUNC] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(_BASE),
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   QK_BOOT,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   TO(_ENTHIUM),  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  QK_LLCK
@@ -262,12 +610,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 6 - Control
     [_CTRL] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,                      KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        C(KC_B),  C(KC_P),  C(KC_F),    C(KC_L),    C(KC_A), C(KC_Y),                      KC_P,     KC_G,       KC_O,       KC_U,       KC_DOT,     KC_BSLS,
-        C(KC_I),  C(KC_N),  C(KC_S),    C(KC_H),    C(KC_T), C(KC_K),                      KC_Y,     HRM_C,      HRM_A,      HRM_E,      HRM_I,      KC_DEL,
-        C(KC_U),  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_D), C(KC_Z),                      KC_SLSH,  HRM_W,      KC_QUOT,    HRM_SCLN,   HRM_COMM,   OS_RSFT,
-                            KC_TRNS,     KC_TRNS,    KC_TRNS,  KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,  KC_BTN2,    KC_WBAK,    KC_WFWD,
-                                                     KC_TRNS,  KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,   RMAGIC
+        KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,                      KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS,
+        C(KC_B),  C(KC_P),  C(KC_F),    C(KC_L),    C(KC_A), C(KC_Y),                      KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS,
+        C(KC_I),  C(KC_N),  C(KC_S),    C(KC_H),    C(KC_T), C(KC_K),                      KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS,
+        C(KC_U),  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_D), C(KC_Z),                      KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,   KC_TRNS,   KC_TRNS,
+                            KC_TRNS,     KC_TRNS,    KC_TRNS,  KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                                                     KC_TRNS,  KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS
     ),
 
     // Layer 7 - Media
@@ -301,26 +649,26 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // Combos
-const uint16_t PROGMEM TH_TAB[] =   {HRM_T, HRM_H, COMBO_END};
-const uint16_t PROGMEM HA_CW[] =    {HRM_H, HRM_A, COMBO_END};
-const uint16_t PROGMEM THS_WSW[] =  {HRM_T, HRM_H, HRM_S, COMBO_END};
-const uint16_t PROGMEM NS_Z[] =     {HRM_N, HRM_S, COMBO_END};
-const uint16_t PROGMEM SE_CAPS[] =  {HRM_S, HRM_E, COMBO_END};
-const uint16_t PROGMEM TC_SYM[] =   {HRM_C, HRM_T, COMBO_END};
-const uint16_t PROGMEM CA_SELW[] =  {HRM_C, HRM_A, COMBO_END};
-const uint16_t PROGMEM CAE_SELL[] = {HRM_C, HRM_A, HRM_E, COMBO_END};
-const uint16_t PROGMEM DM_BSPC[] =  {HRM_G, KC_M, COMBO_END};
+const uint16_t PROGMEM TH_TAB[] =   {HRM_H, HRM_T, COMBO_END};
+const uint16_t PROGMEM HA_CW[] =    {HRM_T, HRM_E, COMBO_END};
+const uint16_t PROGMEM THN_WSW[] =  {HRM_H, HRM_T, HRM_N, COMBO_END};
+// const uint16_t PROGMEM NS_Z[] =     {HRM_N, HRM_S, COMBO_END};
+const uint16_t PROGMEM NI_CAPS[] =  {HRM_N, HRM_I, COMBO_END};
+// const uint16_t PROGMEM TC_SYM[] =   {HRM_C, HRM_T, COMBO_END};
+const uint16_t PROGMEM AE_SELW[] =  {HRM_A, HRM_E, COMBO_END};
+const uint16_t PROGMEM AEI_SELL[] = {HRM_I, HRM_A, HRM_E, COMBO_END};
+const uint16_t PROGMEM GM_BSPC[] =  {KC_G, HRM_M, COMBO_END};
 
 combo_t key_combos[] = {
     COMBO(TH_TAB, KC_TAB),
     COMBO(HA_CW,  CW_TOGG),
-    COMBO(THS_WSW, WINSWITCH),
-    COMBO(NS_Z,   KC_Z),
-    COMBO(SE_CAPS,   KC_CAPS),
-    COMBO(TC_SYM, OSL(_SYM)),
-    COMBO(CA_SELW, SELWORD),
-    COMBO(CAE_SELL, SELLINE),
-    COMBO(DM_BSPC, KC_BSPC),
+    COMBO(THN_WSW, WINSWITCH),
+    // COMBO(NS_Z,   KC_Z),
+    COMBO(NI_CAPS,   KC_CAPS),
+    // COMBO(TC_SYM, OSL(_SYM)),
+    COMBO(AE_SELW, SELWORD),
+    COMBO(AEI_SELL, SELLINE),
+    COMBO(GM_BSPC, KC_BSPC),
 };
 
 
@@ -358,16 +706,11 @@ bool led_update_user(led_t led_state) {
 bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
                             uint8_t* remembered_mods) {
 	switch (keycode) {
-        case HRM_H:
 		case CW_TOGG:
         case KC_ESC:
-        case KC_BSPC:
-        case KC_DEL:
 
         case LMAGIC:
         case RMAGIC:
-        case M_VH:
-        case M_HV:
             return false;  // Magic keys will ignore the above keycodes.
     }
     return true;  // Other keys can be repeated.
@@ -457,86 +800,161 @@ static void cycle_last_magic(void) {
 static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC definitions
     last_magic_state.word = NULL;  // Reset last magic state
     switch (keycode) {
-		case HRM_A: { MAGIC_STRING("ll ", 		KC_SPC); } break;
-	    case  KC_B: { MAGIC_STRING("ecause ",	KC_SPC); } break;
-	    case HRM_C: { MAGIC_STRING("opy ",		KC_SPC); } break;
-	    case  KC_D: { MAGIC_STRING("eath ", 		KC_SPC); } break;
-		case HRM_E: { MAGIC_STRING("very ",			KC_SPC); } break;
-	    case  KC_F: { MAGIC_STRING("amily ", 		KC_SPC); } break;
-	    case  HRM_G: {
+        case HRM_A: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("GiveWell ", 	KC_SPC); } break;
-		case  KC_H: { MAGIC_STRING("ouse ", 		KC_SPC); } break;
-		case HRM_I: { MAGIC_STRING("ng ", 		KC_SPC); } break;
-	    case  KC_J: { MAGIC_STRING("ust",		KC_SPC); } break;
-	    case  KC_K: { MAGIC_STRING("now ", 		KC_SPC); } break;
-	    case  KC_L: { MAGIC_STRING("ove ", 		KC_SPC); } break;
-	    case  KC_M: { MAGIC_STRING("ent ",		KC_SPC); } break;
-	    case HRM_N: { MAGIC_STRING("ever ",		KC_SPC); } break;
-		case  KC_O: { MAGIC_STRING("rder ", 		KC_SPC); } break;
-	    case  KC_P: { MAGIC_STRING("eople ",    	KC_SPC); } break;
-		case  M_QU: { MAGIC_STRING("estion ", 		KC_SPC); } break;
-	    case  KC_R: { MAGIC_STRING("the", 		KC_SPC); } break;
-	    case HRM_S: { MAGIC_STRING("ome ", 		KC_SPC); } break;
-        case HRM_T: { MAGIC_STRING("hough ",		KC_SPC); } break;
-		case  KC_U: { MAGIC_STRING("nder ", 		KC_SPC); } break;
-	    case  KC_V: { MAGIC_STRING("ery",	        KC_SPC); } break;
-	    case HRM_W: { MAGIC_STRING("hich ",		KC_SPC); } break;
-		case KC_X: {
+             MAGIC_STRING_VAR(word_all, KC_SPC); } break;
+        case  KC_B: { MAGIC_STRING("etween ", KC_SPC); } break;
+        case HRM_C: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_copy, KC_SPC); } break;
+        case  KC_D: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_difference, KC_SPC); } break;
+        case HRM_E: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_every, KC_SPC); } break;
+        case  KC_F: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_family, KC_SPC); } break;
+        case  KC_G: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_givewell, KC_SPC); } break;  // Keep as is - proper noun
+        case HRM_H: { MAGIC_STRING("owever ", KC_SPC); } break;
+        case HRM_I: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_ing, KC_SPC); } break;
+        case  KC_J: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_just, KC_SPC); } break;
+        case  KC_K: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_know, KC_SPC); } break;
+        case  KC_L: { MAGIC_STRING("ater ", KC_SPC); } break;
+        case  KC_M: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(ending_ment, KC_SPC); } break;
+        case HRM_N: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_never, KC_SPC); } break;
+        case  KC_O: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_order, KC_SPC); } break;
+        case  KC_P: { MAGIC_STRING("eople ", KC_SPC); } break;
+        case  M_QU: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_question, KC_SPC); } break;
+        case  KC_R: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_the, KC_SPC); } break;
+        case HRM_S: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_some, KC_SPC); } break;
+        case HRM_T: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_though, KC_SPC); } break;
+        case  KC_U: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_under, KC_SPC); } break;
+        case  KC_V: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_very, KC_SPC); } break;
+        case  KC_W: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_with, KC_SPC); } break;
+        case KC_X: {
             tap_code(KC_BSPC);
             MAGIC_STRING_VAR(word_expect, KC_SPC);
             } break;
-		case  KC_Y: { MAGIC_STRING("ou ", 		KC_SPC); } break;
-	    case  KC_Z: { MAGIC_STRING("ation ", 		KC_SPC); } break;
-        case  KC_SPC: { MAGIC_STRING("the ", 		KC_SPC); } break;
-        case HRM_SPC: { MAGIC_STRING("the ", 		KC_SPC); } break;
-		case HRM_COMM: { MAGIC_STRING(" and ",    KC_SPC); } break;
+        case  KC_Y: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_year, KC_SPC); } break;
+        case  KC_Z: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(ending_ation, KC_SPC); } break;
+        case  KC_SPC: {
+             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
+        case HRM_SPC: {
+             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
+        case  KC_COMM: { MAGIC_STRING(" and ", KC_SPC); } break;
     }
 }
 
 static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC definitions
     last_magic_state.word = NULL;  // Reset last magic state
     switch (keycode) {
-	    case HRM_A: { MAGIC_STRING("nd ",     	KC_SPC); } break;
-	    case  KC_B: { MAGIC_STRING("s", 		KC_NO); } break;
-	    case HRM_C: { MAGIC_STRING("y", 		KC_NO); } break;
-	    case  KC_D: { MAGIC_STRING("d", 		KC_NO); } break;
-	    case HRM_E: { MAGIC_STRING("e", 		KC_NO); } break;
-	    case  KC_F: { MAGIC_STRING("f", 		KC_NO); } break;
-	    case HRM_G: { MAGIC_STRING("y", 		KC_NO); } break;
-	    // case  KC_H: {
-        //     tap_code(KC_BSPC);
-        //     MAGIC_STRING("v", 	KC_NO); } break;
-	    case HRM_I: { MAGIC_STRING("on ",    	KC_SPC); } break;
-	    case  KC_J: { MAGIC_STRING("oke ", 		KC_SPC); } break;
-	    case  KC_K: { MAGIC_STRING("ind ", 		KC_SPC); } break;
-	    case  KC_L: { MAGIC_STRING("l", 		KC_NO); } break;
-	    case  KC_M: { MAGIC_STRING("ing ", 		KC_SPC); } break;
-	    case HRM_N: { MAGIC_STRING("n", 		KC_NO); } break;
-	    case  KC_O: { MAGIC_STRING("a", 		KC_NO); } break;
-	    case  KC_P: { MAGIC_STRING("a", 		KC_NO); } break;
-	    case  M_QU: {
+        case HRM_A: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_again, KC_SPC); } break;
+        case  KC_B: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_become, KC_SPC); } break;
+        case HRM_C: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_country, KC_SPC); } break;
+        case  KC_D: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_death, KC_SPC); } break;
+        case HRM_E: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_example, KC_SPC); } break;
+        case  KC_F: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_find, KC_SPC); } break;
+        case  KC_G: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_government, KC_SPC); } break;
+        case HRM_H: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_house, KC_SPC); } break;
+        case HRM_I: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_include, KC_SPC); } break;
+        case  KC_J: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_join, KC_SPC); } break;
+        case  KC_K: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_kind, KC_SPC); } break;
+        case  KC_L: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_large, KC_SPC); } break;  // Keep simple suffix
+        case HRM_M: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_make, KC_SPC); } break;
+        case HRM_N: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_number, KC_SPC); } break;  // Keep simple suffix
+        case  KC_O: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_other, KC_SPC); } break;  // Keep simple suffix
+        case  KC_P: { MAGIC_STRING("a", KC_NO); } break;  // Keep simple suffix
+        case  M_QU: {
             tap_code(KC_BSPC);
             tap_code(KC_BSPC);
-            MAGIC_STRING("QMK ", KC_NO); } break;
-	    case  KC_R: { MAGIC_STRING("r ", 		KC_NO); } break;
-	    case HRM_S: { MAGIC_STRING("s", 		KC_NO); } break;
-	    case HRM_T: { MAGIC_STRING("t", 		KC_NO); } break;
-	    case  KC_U: { MAGIC_STRING("e", 		KC_NO); } break;
-	    case  KC_V: {
+            MAGIC_STRING_VAR(word_qmk, KC_SPC); } break;  // Keep as is - proper noun
+        case  KC_R: { MAGIC_STRING("r ", KC_NO); } break;  // Keep simple suffix
+        case HRM_S: { MAGIC_STRING("everal ", KC_SPC); } break;  // Keep simple suffix
+        case HRM_T: {
             tap_code(KC_BSPC);
-            MAGIC_STRING("h", 		KC_NO); } break;
-	    case HRM_W: { MAGIC_STRING("ould ", 	KC_SPC); } break;
-	    case KC_X: {
+             MAGIC_STRING_VAR(ending_tion, KC_SPC); } break;  // Keep simple suffix
+        case  KC_U: {
             tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_expect, KC_SPC);
+             MAGIC_STRING_VAR(word_use, KC_SPC); } break;  // Keep simple suffix
+        case  KC_V: {
+            tap_code(KC_BSPC);
+             MAGIC_STRING_VAR(word_value, KC_SPC); } break;  // Keep simple suffix
+        case KC_W: { MAGIC_STRING("ould ", KC_SPC); } break;
+        case KC_X: {
+            tap_code(KC_BSPC);
+            MAGIC_STRING_VAR(word_except, KC_SPC);
             } break;
-	    case  KC_Y: { MAGIC_STRING("o",    	KC_NO); } break;
-	    case  KC_Z: { MAGIC_STRING("z", 		KC_NO); } break;
-
-	    case HRM_COMM: { MAGIC_STRING(" but",    KC_SPC); } break;
-		case KC_SPC: { MAGIC_STRING("the ", 	KC_SPC); } break;
-        case HRM_SPC: { MAGIC_STRING("the ", 	KC_SPC); } break;
+        case  KC_Y: { MAGIC_STRING("o", KC_NO); } break;  // Keep simple suffix
+        case  KC_Z: { MAGIC_STRING("z", KC_NO); } break;  // Keep simple suffix
+        case  KC_COMM: { MAGIC_STRING(" but", KC_SPC); } break;  // Keep as is
+        case KC_SPC: {
+             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
+        case HRM_SPC: {
+             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
     }
 }
 
@@ -594,9 +1012,9 @@ bool caps_word_press_user(uint16_t keycode) {
     case KC_DEL:
     case KC_UNDS:
     case KC_COLN:
-    case HRM_J:
-    case HRM_SCLN:
-    case HRM_COMM:
+    // case HRM_J:
+    // case HRM_SCLN:
+    // case HRM_COMM:
     case M_QU:
 
       return true;
@@ -689,9 +1107,80 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
+static uint16_t adaptive_timer = 0;
+static uint16_t last_key = KC_NO;
+
+// Helper function to handle adaptive key substitutions
+static bool process_adaptive_keys(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) {
+        return true;  // Only process on press
+    }
+
+    // Check if we're within the adaptive timing window
+    if (timer_elapsed(adaptive_timer) > ADAPTIVE_TERM_MS) {
+        last_key = keycode;
+        adaptive_timer = timer_read();
+        return true;  // Too slow, don't adapt
+    }
+
+    // Store current mods state
+    uint8_t mods = get_mods();
+    bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
+    bool caps_word = is_caps_word_on();
+
+        // Check for our specific bigrams
+    bool substitution_made = false;
+    uint16_t replacement_key = KC_NO;
+
+    // "gm" -> "gl"
+    if (last_key == KC_G && keycode == HRM_M) {
+        replacement_key = KC_L;
+        substitution_made = true;
+    }
+    // "uo" -> "ua"
+    else if (last_key == KC_U && keycode == KC_O) {
+        replacement_key = KC_A;
+        substitution_made = true;
+    }
+    // "ae" -> "au"
+    else if (last_key == HRM_A && keycode == HRM_E) {
+        replacement_key = KC_U;
+        substitution_made = true;
+    }
+
+    if (substitution_made) {
+        // Send the replacement key with proper capitalization
+        if (caps_word || shift) {
+            tap_code16(S(replacement_key));  // Send shifted version
+        } else {
+            tap_code(replacement_key);  // Send lowercase
+        }
+    }
+
+    if (substitution_made) {
+        // Update tracking for next potential substitution
+        last_key = keycode;  // Keep original keycode for consistency
+        adaptive_timer = timer_read();
+        return false;  // Don't process the original key
+    }
+
+    // No substitution, update tracking
+    last_key = keycode;
+    adaptive_timer = timer_read();
+    return true;
+}
+
+
+
+
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (record->event.pressed) {
         uprintf("Processing key: %u, repeat count: %d\n", keycode, get_repeat_key_count());
+    }
+
+    // Process adaptive keys BEFORE other processing
+    if (!process_adaptive_keys(keycode, record)) {
+        return false;  // Adaptive key handled it
     }
 
     if (!process_quopostrokey(keycode, record)) { return false; }
