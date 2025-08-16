@@ -71,10 +71,6 @@ enum custom_keycodes {
     // Q -> Qu
     M_QU,  // Magic key for "qu"
 
-    // Macros to handle h/v switcher
-    M_HV,
-    M_VH,
-
     // Braces helper
     BRACES,  // For sending braces with Shift/Ctrl/Alt/Gui
 
@@ -84,379 +80,6 @@ enum custom_keycodes {
 
     QUOP, // Quopostrokey
 
-};
-
-// Add near your custom_keycodes enum
-typedef struct {
-    const char* base;
-    const char* variations[5];  // Adjust size as needed
-    uint8_t var_count;
-} word_variants_t;
-
-// Track last magic expansion
-static struct {
-    const word_variants_t* word;
-    uint8_t current_variant;
-    uint16_t base_length;
-    uint16_t repeat_keycode;  // Add this!
-} last_magic_state = {NULL, 0, 0, KC_NO};
-
-// Define word variants - expanded set
-// Letter A
-const word_variants_t word_all = {
-    .base = "all ",
-    .variations = {"allow ", "allows ", "allowed ", "allowing ", "allowance "},
-    .var_count = 5
-};
-
-const word_variants_t word_again = {
-    .base = "again ",
-    .variations = {"against ", NULL, NULL, NULL, NULL},
-    .var_count = 1
-};
-
-// Letter B
-// const word_variants_t word_between = {
-//     .base = "between ",
-//     .variations = {"betwixt ", NULL, NULL, NULL, NULL},
-//     .var_count = 1
-// };
-
-const word_variants_t word_become = {
-    .base = "become ",
-    .variations = {"became ", "becoming ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-// Letter C
-const word_variants_t word_copy = {
-    .base = "copy ",
-    .variations = {"copies ", "copied ", "copying ", "copier ", NULL},
-    .var_count = 4
-};
-
-const word_variants_t word_country = {
-    .base = "country ",
-    .variations = {"countries ", "country's ", "countrywide ", "countryside ", NULL},
-    .var_count = 4
-};
-
-// Letter D
-const word_variants_t word_death = {
-    .base = "death ",
-    .variations = {"deaths ", "deathly ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_difference = {
-    .base = "difference ",
-    .variations = {"differences ", "differential ", "differentiated ", "differentiation ", NULL},
-    .var_count = 4
-};
-
-// Letter E
-const word_variants_t word_every = {
-    .base = "every ",
-    .variations = {"everyone ", "everything ", "everywhere ", "everybody ", "everyday "},
-    .var_count = 5
-};
-
-const word_variants_t word_example = {
-    .base = "example ",
-    .variations = {"examples ", "exemplary ", "exemplify ", "exemplification ", NULL},
-    .var_count = 4
-};
-
-// Letter F
-const word_variants_t word_family = {
-    .base = "family ",
-    .variations = {"families ", "familial ", "familiar ", "familiarity ", NULL},
-    .var_count = 4
-};
-
-const word_variants_t word_find = {
-    .base = "find ",
-    .variations = {"found ", "finds ", "finding ", "findings ", NULL},
-    .var_count = 4
-};
-
-// Letter G
-const word_variants_t word_givewell = {
-    .base = "GiveWell ",
-    .variations = {"GiveWell's ", "GiveWell.org ", "GiveWell-style ", "GiveWell-inspired ", NULL},
-    .var_count = 4
-};
-
-const word_variants_t word_government = {
-    .base = "government ",
-    .variations = {"governments ", "government's ", "governmental ", NULL, NULL},
-    .var_count = 3
-};
-
-// Letter H
-const word_variants_t word_house = {
-    .base = "house ",
-    .variations = {"houses ", "housed ", "housing ", "household ", NULL},
-    .var_count = 4
-};
-
-// const word_variants_t word_however = {
-//     .base = "however ",
-//     .variations = {"howevers ", "however's ", NULL, NULL, NULL},
-//     .var_count = 2
-// };
-
-// Letter I
-const word_variants_t ending_ing = {
-    .base = "ing ",
-    .variations = {"ings ", "ingly ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_include = {
-    .base = "include ",
-    .variations = {"includes ", "included ", "including ", NULL, NULL},
-    .var_count = 3
-};
-
-// Letter J
-const word_variants_t word_just = {
-    .base = "just ",
-    .variations = {"justify ", "justified ", "justifying ", "justification ", "justice "},
-    .var_count = 5
-};
-
-const word_variants_t word_join = {
-    .base = "join ",
-    .variations = {"joins ", "joined ", "joining ", "joint ", NULL},
-    .var_count = 4
-};
-
-// Letter K
-const word_variants_t word_know = {
-    .base = "know ",
-    .variations = {"knows ", "knew ", "knowing ", "known ", "knowledge "},
-    .var_count = 5
-};
-
-const word_variants_t word_key = {
-    .base = "key ",
-    .variations = {"keys ", "keyed ", "keying ", "keynote ", "keypad "},
-    .var_count = 5
-};
-
-// Letter L
-// const word_variants_t word_later = {
-//     .base = "love ",
-//     .variations = {"loves ", "loved ", "loving ", "lovely ", "lover "},
-//     .var_count = 5
-// };
-
-const word_variants_t word_large = {
-    .base = "large ",
-    .variations = {"larger ", "largest ", "largely ", "largeness ", NULL},
-    .var_count = 4
-};
-
-// Letter M
-const word_variants_t ending_ment = {
-    .base = "ment ",
-    .variations = {"ments ", "mental ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_make = {
-    .base = "make ",
-    .variations = {"makes ", "made ", "making ", "makeover ", NULL},
-    .var_count = 4
-};
-
-// Letter N
-const word_variants_t word_never = {
-    .base = "never ",
-    .variations = {"nevertheless ", "nevermore ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_number = {
-    .base = "number ",
-    .variations = {"numbers ", "numbered ", "numbering ", "numerical ", NULL},
-    .var_count = 4
-};
-
-// Letter O
-const word_variants_t word_order = {
-    .base = "order ",
-    .variations = {"orders ", "ordered ", "ordering ", "orderly ", "disorder "},
-    .var_count = 5
-};
-
-const word_variants_t word_other = {
-    .base = "other ",
-    .variations = {"others ", "other's ", "othering ", "otherness ", NULL},
-    .var_count = 4
-};
-
-// Letter P
-// const word_variants_t word_people = {
-//     .base = "people ",
-//     .variations = {"person ", "personal ", "personally ", "personnel ", "personalize "},
-//     .var_count = 5
-// };
-
-const word_variants_t word_prompt = {
-    .base = "prompt ",
-    .variations = {"prompts ", "prompted ", "prompting ", "promptness ", NULL},
-    .var_count = 4
-};
-
-// Letter Q
-const word_variants_t word_question = {
-    .base = "question ",
-    .variations = {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "},
-    .var_count = 5
-};
-
-const word_variants_t word_qmk = {
-    .base = "QMK ",
-    .variations = {"QMK compile ", NULL, NULL, NULL, NULL},
-    .var_count = 1
-};
-
-// Letter R
-const word_variants_t ending_r = {
-    .base = " the ",
-    .variations = {" these ", " there ", " then ", " them ", " they "},
-    .var_count = 5
-};
-
-// LMAGIC is an SFB
-
-// Letter S
-const word_variants_t word_some = {
-    .base = "some ",
-    .variations = {"something ", "someone ", "somewhere ", "somehow ", "somebody "},
-    .var_count = 5
-};
-
-// const word_variants_t word_some = {
-//     .base = "some ",
-//     .variations = {"something ", "someone ", "somewhere ", "somehow ", "somebody "},
-//     .var_count = 5
-// };
-
-// Letter T
-const word_variants_t word_though = {
-    .base = "though ",
-    .variations = {"thought ", "thoughts ", "through ", NULL, NULL},
-    .var_count = 3
-};
-
-const word_variants_t ending_tion = {
-    .base = "tion ",
-    .variations = {"tions ", "tional ", "tionally ", NULL, NULL},
-    .var_count = 3
-};
-
-// Letter U
-const word_variants_t word_under = {
-    .base = "under ",
-    .variations = {"understand ", "understood ", "understanding ", "underneath ", "underway "},
-    .var_count = 5
-};
-
-const word_variants_t word_use = {
-    .base = "use ",
-    .variations = {"uses ", "used ", "using ", "usability ", "user "},
-    .var_count = 5
-};
-
-// Letter V
-const word_variants_t word_very = {
-    .base = "very ",
-    .variations = {"verify ", "verified ", "verifying ", "verification ", NULL},
-    .var_count = 4
-};
-
-const word_variants_t word_value = {
-    .base = "value ",
-    .variations = {"values ", "valued ", "valuing ", "valuation ", NULL},
-    .var_count = 4
-};
-
-// Letter W
-const word_variants_t word_with = {
-    .base = "with ",
-    .variations = {"without ", "within ", "withstand ", "withheld ", "withering "},
-    .var_count = 5
-};
-
-// Letter X
-const word_variants_t word_expect = {
-    .base = "expect ",
-    .variations = {"expects ", "expected ", "expecting ", "expectation ", "expectedly "},
-    .var_count = 5
-};
-const word_variants_t word_except = {
-    .base = "except ",
-    .variations = {"exception ", "exceptions ", "excepting ", NULL, NULL},
-    .var_count = 3
-};
-
-// Letter Y
-const word_variants_t word_year = {
-    .base = "year ",
-    .variations = {"years ", "yearly ", "yearn ", "yearning ", NULL},
-    .var_count = 4
-};
-
-// const word_variants_t word_year = {
-//     .base = "year ",
-//     .variations = {"years ", "yearly ", "yearn ", "yearning ", NULL},
-//     .var_count = 4
-// };
-
-// Letter Z
-const word_variants_t ending_ation = {
-    .base = "ation ",
-    .variations = {"ational ", "ationally ", "ations ", NULL, NULL},
-    .var_count = 3
-};
-
-const word_variants_t word_the = {
-    .base = "the ",
-    .variations = {" these ", " there ", " then ", " them ", " they "},
-    .var_count = 5
-};
-
-// const word_variants_t word_and = {
-//     .base = "and ",
-//     .variations = {"android ", "another ", "any ", "anyone ", "anything "},
-//     .var_count = 5
-// };
-
-const word_variants_t word_would = {
-    .base = "would ",
-    .variations = {"wouldn't ", "would've ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_ing = {
-    .base = "ing ",
-    .variations = {"ingly ", "ings ", NULL, NULL, NULL},
-    .var_count = 2
-};
-
-const word_variants_t word_on = {
-    .base = "on ",
-    .variations = {"one ", "only ", "once ", "onto ", "online "},
-    .var_count = 5
-};
-
-const word_variants_t word_kind = {
-    .base = "kind ",
-    .variations = {"kinds ", "kindly ", "kindness ", "kinder ", NULL},
-    .var_count = 4
 };
 
 // Home Row Modifiers
@@ -551,8 +174,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
-        KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_SCLN,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
-        KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    QK_REP,   HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
+        KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_MINS,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
+        KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    KC_SCLN,  HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
         OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       KC_DOT,     KC_COMM,    OS_RSFT,
                             A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
@@ -648,31 +271,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 
-// Combos
-const uint16_t PROGMEM TH_TAB[] =   {HRM_H, HRM_T, COMBO_END};
-const uint16_t PROGMEM HA_CW[] =    {HRM_T, HRM_E, COMBO_END};
-const uint16_t PROGMEM THN_WSW[] =  {HRM_H, HRM_T, HRM_N, COMBO_END};
-// const uint16_t PROGMEM NS_Z[] =     {HRM_N, HRM_S, COMBO_END};
-const uint16_t PROGMEM NI_CAPS[] =  {HRM_N, HRM_I, COMBO_END};
-// const uint16_t PROGMEM TC_SYM[] =   {HRM_C, HRM_T, COMBO_END};
-const uint16_t PROGMEM AE_SELW[] =  {HRM_A, HRM_E, COMBO_END};
-const uint16_t PROGMEM AEI_SELL[] = {HRM_I, HRM_A, HRM_E, COMBO_END};
-const uint16_t PROGMEM GM_BSPC[] =  {KC_G, HRM_M, COMBO_END};
-
-combo_t key_combos[] = {
-    COMBO(TH_TAB, KC_TAB),
-    COMBO(HA_CW,  CW_TOGG),
-    COMBO(THN_WSW, WINSWITCH),
-    // COMBO(NS_Z,   KC_Z),
-    COMBO(NI_CAPS,   KC_CAPS),
-    // COMBO(TC_SYM, OSL(_SYM)),
-    COMBO(AE_SELW, SELWORD),
-    COMBO(AEI_SELL, SELLINE),
-    COMBO(GM_BSPC, KC_BSPC),
-};
-
-
-
 void pointing_device_init_user(void) {
     charybdis_set_pointer_dragscroll_enabled(true, true);
 }
@@ -716,42 +314,124 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
     return true;  // Other keys can be repeated.
 }
 
-// An enhanced version of SEND_STRING: if Caps Word is active, the Shift key is
-// held while sending the string. Additionally, the last key is set such that if
-// the Repeat Key is pressed next, it produces `repeat_keycode`.
-#define MAGIC_STRING(str, repeat_keycode) \
-		magic_send_string_P(PSTR(str), (repeat_keycode))
-
-static void magic_send_string_P(const char* str, uint16_t repeat_keycode) {
-	uint8_t saved_mods = 0;
-
-  if (is_caps_word_on()) { // If Caps Word is on, save the mods and hold Shift.
-    saved_mods = get_mods();
-    register_mods(MOD_BIT(KC_LSFT));
-  }
-
-  send_string_with_delay_P(str, TAP_CODE_DELAY);  // Send the string.
-  set_last_keycode(repeat_keycode); // 2024-03-09 Disabled sending of string for mag-rep / rep-mag consistency.
-
-  // If Caps Word is on, restore the mods.
-  if (is_caps_word_on()) {
-    set_mods(saved_mods);
-  }
+// Put this near your other small helpers
+static inline bool is_spaceish_key(uint16_t kc) {
+    switch (kc) {
+        case KC_SPC:
+        case HRM_SPC:
+        case LMAGIC:   // both magic keys insert a trailing space in your maps
+        case RMAGIC:
+            return true;
+    }
+    return false;
 }
 
+// ============================================================================
+// MAGIC KEYS REFACTORING - Add this section to replace your existing magic code
+// ============================================================================
 
-// Add new macro for cycling words
-#define MAGIC_STRING_VAR(word_var, repeat_keycode) \
-    magic_send_string_var(&word_var, (repeat_keycode))
+// 1. REPLACE your existing word_variants_t structure with this:
+typedef struct {
+    bool needs_backspace;
+    const char* base;
+    const char* variations[5];
+    uint8_t var_count;
+} magic_entry_t;
 
-// Modified cycling version that accepts repeat_keycode
-static void magic_send_string_var(const word_variants_t* word, uint16_t repeat_keycode) {
-    uprintf("MAGIC_STRING_VAR: word=%s, previous_variant=%d\n",
-            word->base, last_magic_state.current_variant);
-    last_magic_state.word = word;
+// 2. REPLACE your existing last_magic_state with this:
+static struct {
+    const magic_entry_t* entry;  // Changed from word_variants_t*
+    uint8_t current_variant;
+    uint16_t base_length;
+    uint16_t repeat_keycode;
+} last_magic_state = {NULL, 0, 0, KC_NO};
+
+// 4. REPLACE all your word_* definitions with these lookup tables:
+
+// RMAGIC lookup table - indexed by keycode directly
+static const magic_entry_t rmagic_table[256] = {
+    [KC_A] = {true, "all ", {"allow ", "allows ", "allowed ", "allowing ", "allowance "}, 5},
+    [KC_B] = {false, "etween ", {NULL}, 0},
+    [KC_C] = {true, "copy ", {"copies ", "copied ", "copying ", "copier ", NULL}, 4},
+    [KC_D] = {true, "difference ", {"differences ", "differential ", "differentiated ", "differentiation ", NULL}, 4},
+    [KC_E] = {true, "every ", {"everyone ", "everything ", "everywhere ", "everybody ", "everyday "}, 5},
+    [KC_F] = {true, "family ", {"families ", "familial ", "familiar ", "familiarity ", NULL}, 4},
+    [KC_G] = {true, "GiveWell ", {"GiveWell's ", "GiveWell.org ", "GiveWell-style ", "GiveWell-inspired ", NULL}, 4},
+    [KC_H] = {false, "owever ", {NULL}, 0},
+    [KC_I] = {true, "ing ", {"ings ", "ingly ", NULL}, 2},
+    [KC_J] = {true, "just ", {"justify ", "justified ", "justifying ", "justification ", "justice "}, 5},
+    [KC_K] = {true, "know ", {"knows ", "knew ", "knowing ", "known ", "knowledge "}, 5},
+    [KC_L] = {false, "ater ", {NULL}, 0},
+    [KC_M] = {true, "ment ", {"ments ", "mental ", NULL}, 2},
+    [KC_N] = {true, "never ", {"nevertheless ", "nevermore ", NULL}, 2},
+    [KC_O] = {true, "order ", {"orders ", "ordered ", "ordering ", "orderly ", "disorder "}, 5},
+    [KC_P] = {true, "people ", {"person ", "personal ", "personally ", "personnel ", "personalize "}, 5},
+    [KC_Q] = {true, "question ", {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "}, 5},
+    [KC_R] = {true, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
+    [KC_S] = {true, "some ", {"something ", "someone ", "somewhere ", "somehow ", "somebody "}, 5},
+    [KC_T] = {true, "though ", {"thought ", "thoughts ", "through ", NULL}, 3},
+    [KC_U] = {true, "under ", {"understand ", "understood ", "understanding ", "underneath ", "underway "}, 5},
+    [KC_V] = {true, "very ", {"verify ", "verified ", "verifying ", "verification ", NULL}, 4},
+    [KC_W] = {true, "with ", {"without ", "within ", "withstand ", "withheld ", "withering "}, 5},
+    [KC_X] = {true, "expect ", {"expects ", "expected ", "expecting ", "expectation ", "expectedly "}, 5},
+    [KC_Y] = {true, "year ", {"years ", "yearly ", "yearn ", "yearning ", NULL}, 4},
+    [KC_Z] = {true, "ation ", {"ational ", "ationally ", "ations ", NULL}, 3},
+    [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
+    [KC_COMM] = {false, " and ", {NULL}, 0},
+};
+
+// LMAGIC lookup table - indexed by keycode directly
+static const magic_entry_t lmagic_table[256] = {
+    [KC_A] = {true, "again ", {"against ", NULL}, 1},
+    [KC_B] = {true, "become ", {"became ", "becoming ", NULL}, 2},
+    [KC_C] = {true, "could ", {"couldn't ", NULL}, 1},
+    [KC_D] = {true, "death ", {"deaths ", "deathly ", NULL}, 2},
+    [KC_E] = {true, "example ", {"examples ", "exemplary ", "exemplify ", "exemplification ", NULL}, 4},
+    [KC_F] = {true, "find ", {"found ", "finds ", "finding ", "findings ", NULL}, 4},
+    [KC_G] = {true, "government ", {"governments ", "government's ", "governmental ", NULL}, 3},
+    [KC_H] = {true, "house ", {"houses ", "housed ", "housing ", "household ", NULL}, 4},
+    [KC_I] = {true, "include ", {"includes ", "included ", "including ", NULL}, 3},
+    [KC_J] = {true, "join ", {"joins ", "joined ", "joining ", "joint ", NULL}, 4},
+    [KC_K] = {true, "kind ", {"kinds ", "kindly ", "kindness ", "kinder ", NULL}, 4},
+    [KC_L] = {true, "large ", {"larger ", "largest ", "largely ", "largeness ", NULL}, 4},
+    [KC_M] = {true, "make ", {"makes ", "made ", "making ", "makeover ", NULL}, 4},
+    [KC_N] = {true, "number ", {"numbers ", "numbered ", "numbering ", "numerical ", NULL}, 4},
+    [KC_O] = {true, "other ", {"others ", "other's ", "othering ", "otherness ", NULL}, 4},
+    [KC_P] = {false, "a", {NULL}, 0},
+    [KC_Q] = {true, "QMK ", {"QMK compile ", NULL}, 1},
+    [KC_R] = {false, "r ", {NULL}, 0},
+    [KC_S] = {false, "everal ", {NULL}, 0},
+    [KC_T] = {true, "tion ", {"tions ", "tional ", "tionally ", NULL}, 3},
+    [KC_U] = {true, "use ", {"uses ", "used ", "using ", "usability ", "user "}, 5},
+    [KC_V] = {true, "value ", {"values ", "valued ", "valuing ", "valuation ", NULL}, 4},
+    [KC_W] = {false, "ould ", {NULL}, 0},
+    [KC_X] = {true, "except ", {"exception ", "exceptions ", "excepting ", NULL}, 3},
+    [KC_Y] = {false, "o", {NULL}, 0},
+    [KC_Z] = {false, "z", {NULL}, 0},
+    [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
+    [KC_COMM] = {false, " but ", {NULL}, 0},
+};
+
+// Special handling for M_QU keycode mappings
+static const magic_entry_t* get_magic_entry_for_qu(bool is_rmagic) {
+    static const magic_entry_t rmagic_qu = {true, "question ", {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "}, 5};
+    static const magic_entry_t lmagic_qu = {true, "QMK ", {"QMK compile ", NULL}, 1};
+    return is_rmagic ? &rmagic_qu : &lmagic_qu;
+}
+
+// 5. REPLACE your MAGIC_STRING_VAR macro and magic_send_string_var function with:
+#define MAGIC_STRING_VAR(entry, repeat_keycode) \
+    magic_send_string_entry(entry, (repeat_keycode))
+
+static void magic_send_string_entry(const magic_entry_t* entry, uint16_t repeat_keycode) {
+    if (!entry || !entry->base) return;
+
+    uprintf("MAGIC_STRING_VAR: word=%s\n", entry->base);
+
+    last_magic_state.entry = entry;
     last_magic_state.current_variant = 0;
-    last_magic_state.base_length = strlen(word->base);
-    last_magic_state.repeat_keycode = repeat_keycode;  // Save it!
+    last_magic_state.base_length = strlen(entry->base);
+    last_magic_state.repeat_keycode = repeat_keycode;
 
     // Send the base form
     uint8_t saved_mods = 0;
@@ -760,22 +440,22 @@ static void magic_send_string_var(const word_variants_t* word, uint16_t repeat_k
         register_mods(MOD_BIT(KC_LSFT));
     }
 
-    send_string_with_delay(word->base, TAP_CODE_DELAY);
-    set_last_keycode(repeat_keycode);  // Preserve this functionality!
+    send_string_with_delay(entry->base, TAP_CODE_DELAY);
+    set_last_keycode(repeat_keycode);
 
     if (is_caps_word_on()) {
         set_mods(saved_mods);
     }
 }
 
-// Update cycle function to also set last keycode
+// 6. REPLACE your cycle_last_magic function with:
 static void cycle_last_magic(void) {
-    if (!last_magic_state.word) return;
+    if (!last_magic_state.entry) return;
 
     // Calculate how many backspaces needed
     uint16_t current_length = (last_magic_state.current_variant == 0)
         ? last_magic_state.base_length
-        : strlen(last_magic_state.word->variations[last_magic_state.current_variant - 1]);
+        : strlen(last_magic_state.entry->variations[last_magic_state.current_variant - 1]);
 
     // Backspace current word
     for (uint16_t i = 0; i < current_length; i++) {
@@ -784,223 +464,76 @@ static void cycle_last_magic(void) {
 
     // Move to next variant
     last_magic_state.current_variant++;
-    if (last_magic_state.current_variant > last_magic_state.word->var_count) {
+    if (last_magic_state.current_variant > last_magic_state.entry->var_count) {
         last_magic_state.current_variant = 0;
     }
 
     // Send new variant
     const char* to_send = (last_magic_state.current_variant == 0)
-        ? last_magic_state.word->base
-        : last_magic_state.word->variations[last_magic_state.current_variant - 1];
+        ? last_magic_state.entry->base
+        : last_magic_state.entry->variations[last_magic_state.current_variant - 1];
 
     send_string(to_send);
-    set_last_keycode(last_magic_state.repeat_keycode);  // Use saved keycode
+    set_last_keycode(last_magic_state.repeat_keycode);
 }
 
-static void process_right_magic(uint16_t keycode, uint8_t mods) { // RMAGIC definitions
-    last_magic_state.word = NULL;  // Reset last magic state
-    switch (keycode) {
-        case HRM_A: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_all, KC_SPC); } break;
-        case  KC_B: { MAGIC_STRING("etween ", KC_SPC); } break;
-        case HRM_C: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_copy, KC_SPC); } break;
-        case  KC_D: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_difference, KC_SPC); } break;
-        case HRM_E: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_every, KC_SPC); } break;
-        case  KC_F: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_family, KC_SPC); } break;
-        case  KC_G: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_givewell, KC_SPC); } break;  // Keep as is - proper noun
-        case HRM_H: { MAGIC_STRING("owever ", KC_SPC); } break;
-        case HRM_I: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_ing, KC_SPC); } break;
-        case  KC_J: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_just, KC_SPC); } break;
-        case  KC_K: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_know, KC_SPC); } break;
-        case  KC_L: { MAGIC_STRING("ater ", KC_SPC); } break;
-        case  KC_M: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(ending_ment, KC_SPC); } break;
-        case HRM_N: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_never, KC_SPC); } break;
-        case  KC_O: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_order, KC_SPC); } break;
-        case  KC_P: { MAGIC_STRING("eople ", KC_SPC); } break;
-        case  M_QU: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_question, KC_SPC); } break;
-        case  KC_R: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_the, KC_SPC); } break;
-        case HRM_S: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_some, KC_SPC); } break;
-        case HRM_T: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_though, KC_SPC); } break;
-        case  KC_U: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_under, KC_SPC); } break;
-        case  KC_V: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_very, KC_SPC); } break;
-        case  KC_W: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_with, KC_SPC); } break;
-        case KC_X: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_expect, KC_SPC);
-            } break;
-        case  KC_Y: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_year, KC_SPC); } break;
-        case  KC_Z: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(ending_ation, KC_SPC); } break;
-        case  KC_SPC: {
-             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
-        case HRM_SPC: {
-             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
-        case  KC_COMM: { MAGIC_STRING(" and ", KC_SPC); } break;
+// 7. REPLACE your process_right_magic and process_left_magic functions with:
+static void process_right_magic(uint16_t keycode, uint8_t mods) {
+    last_magic_state.entry = NULL;  // Reset last magic state
+
+    // Normalize the keycode
+    uint16_t base_kc = keycode & 0xFF;
+
+    // Special handling for M_QU
+    if (keycode == M_QU) {
+        const magic_entry_t* entry = get_magic_entry_for_qu(true);
+        tap_code(KC_BSPC);
+        tap_code(KC_BSPC);
+        MAGIC_STRING_VAR(entry, KC_SPC);
+        return;
     }
-}
 
-static void process_left_magic(uint16_t keycode, uint8_t mods) { // LMAGIC definitions
-    last_magic_state.word = NULL;  // Reset last magic state
-    switch (keycode) {
-        case HRM_A: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_again, KC_SPC); } break;
-        case  KC_B: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_become, KC_SPC); } break;
-        case HRM_C: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_country, KC_SPC); } break;
-        case  KC_D: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_death, KC_SPC); } break;
-        case HRM_E: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_example, KC_SPC); } break;
-        case  KC_F: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_find, KC_SPC); } break;
-        case  KC_G: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_government, KC_SPC); } break;
-        case HRM_H: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_house, KC_SPC); } break;
-        case HRM_I: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_include, KC_SPC); } break;
-        case  KC_J: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_join, KC_SPC); } break;
-        case  KC_K: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_kind, KC_SPC); } break;
-        case  KC_L: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_large, KC_SPC); } break;  // Keep simple suffix
-        case HRM_M: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_make, KC_SPC); } break;
-        case HRM_N: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_number, KC_SPC); } break;  // Keep simple suffix
-        case  KC_O: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_other, KC_SPC); } break;  // Keep simple suffix
-        case  KC_P: { MAGIC_STRING("a", KC_NO); } break;  // Keep simple suffix
-        case  M_QU: {
-            tap_code(KC_BSPC);
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_qmk, KC_SPC); } break;  // Keep as is - proper noun
-        case  KC_R: { MAGIC_STRING("r ", KC_NO); } break;  // Keep simple suffix
-        case HRM_S: { MAGIC_STRING("everal ", KC_SPC); } break;  // Keep simple suffix
-        case HRM_T: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(ending_tion, KC_SPC); } break;  // Keep simple suffix
-        case  KC_U: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_use, KC_SPC); } break;  // Keep simple suffix
-        case  KC_V: {
-            tap_code(KC_BSPC);
-             MAGIC_STRING_VAR(word_value, KC_SPC); } break;  // Keep simple suffix
-        case KC_W: { MAGIC_STRING("ould ", KC_SPC); } break;
-        case KC_X: {
-            tap_code(KC_BSPC);
-            MAGIC_STRING_VAR(word_except, KC_SPC);
-            } break;
-        case  KC_Y: { MAGIC_STRING("o", KC_NO); } break;  // Keep simple suffix
-        case  KC_Z: { MAGIC_STRING("z", KC_NO); } break;  // Keep simple suffix
-        case  KC_COMM: { MAGIC_STRING(" but", KC_SPC); } break;  // Keep as is
-        case KC_SPC: {
-             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
-        case HRM_SPC: {
-             MAGIC_STRING_VAR(word_the, KC_SPC); } break;
+    // Look up in table
+    const magic_entry_t* entry = &rmagic_table[base_kc];
+    if (!entry->base) return;  // No mapping for this key
+
+    // Apply backspace if needed
+    if (entry->needs_backspace) {
+        tap_code(KC_BSPC);
     }
+
+    // Send the magic string
+    MAGIC_STRING_VAR(entry, KC_SPC);
 }
 
-/* ───────── h / v macros ───────── */
+static void process_left_magic(uint16_t keycode, uint8_t mods) {
+    last_magic_state.entry = NULL;  // Reset last magic state
 
-static inline bool is_prev_key_vowel(uint16_t kc) {
-    switch (kc) {
-        case KC_A: case HRM_A:
-        case KC_E: case HRM_E:
-        case KC_I: case HRM_I:
-        case KC_O:
-        case KC_U:
-            return true;
+    // Normalize the keycode
+    uint16_t base_kc = keycode & 0xFF;
+
+    // Special handling for M_QU
+    if (keycode == M_QU) {
+        const magic_entry_t* entry = get_magic_entry_for_qu(false);
+        tap_code(KC_BSPC);
+        tap_code(KC_BSPC);
+        MAGIC_STRING_VAR(entry, KC_SPC);
+        return;
     }
-    return false;
+
+    // Look up in table
+    const magic_entry_t* entry = &lmagic_table[base_kc];
+    if (!entry->base) return;  // No mapping for this key
+
+    // Apply backspace if needed
+    if (entry->needs_backspace) {
+        tap_code(KC_BSPC);
+    }
+
+    // Send the magic string - note P and Y,Z don't add space
+    uint16_t repeat_kc = (base_kc == KC_P || base_kc == KC_Y || base_kc == KC_Z) ? KC_NO : KC_SPC;
+    MAGIC_STRING_VAR(entry, repeat_kc);
 }
-
-// static void process_hv_macro(bool reverse, uint16_t last_keycode) {
-//     uint8_t mods = get_mods();
-//     bool has_mods = mods & (MOD_BIT(KC_LCTL) | MOD_BIT(KC_LALT) | MOD_BIT(KC_LGUI) |
-//                            MOD_BIT(KC_RCTL) | MOD_BIT(KC_RALT) | MOD_BIT(KC_RGUI));
-//     bool caps_word = is_caps_word_on();
-
-//     uint16_t out;
-
-//     if (has_mods) {
-//         // With non-shift modifiers: M_HV always outputs H, M_VH always outputs V
-//         out = reverse ? KC_H : KC_V;
-//     } else {
-//         // Normal behavior: check previous key
-//         bool vowel = is_prev_key_vowel(last_keycode);
-//         /*  regular   :  vowel ⇒ V , else ⇒ H
-//             'reverse' :  vowel ⇒ H , else ⇒ V   */
-//         out = (vowel ^ reverse) ? KC_V : KC_H;
-//     }
-
-//     // Apply shift if Caps Word is active
-//     if (caps_word) {
-//         tap_code16(S(out));
-//     } else {
-//         tap_code(out);
-//     }
-
-//     set_last_keycode(out);
-// }
-
 
 bool caps_word_press_user(uint16_t keycode) {
   switch (keycode) {
@@ -1097,6 +630,7 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   // Determine whether the key is a letter.
   switch (keycode) {
     case KC_A ... KC_Z:
+    case KC_BSPC:
       within_word = true;
       break;
 
@@ -1107,69 +641,150 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-static uint16_t adaptive_timer = 0;
-static uint16_t last_key = KC_NO;
+// ─── Adaptive key state ───────────────────────────────────────────────────────
+static uint16_t prior_keycode = KC_NO;
+static uint16_t preprior_keycode = KC_NO;
+static uint16_t prior_keydown_ms = 0;
 
-// Helper function to handle adaptive key substitutions
-static bool process_adaptive_keys(uint16_t keycode, keyrecord_t* record) {
-    if (!record->event.pressed) {
-        return true;  // Only process on press
+// Unwrap QK_MOD_TAP / QK_LAYER_TAP to their tap keycode if this press is a tap.
+static inline uint16_t unwrap_tap_keycode(uint16_t kc, const keyrecord_t *record) {
+#ifndef NO_ACTION_TAPPING
+    if (QK_MOD_TAP <= kc && kc <= QK_MOD_TAP_MAX) {
+        return (record->tap.count > 0) ? QK_MOD_TAP_GET_TAP_KEYCODE(kc) : kc;
     }
-
-    // Check if we're within the adaptive timing window
-    if (timer_elapsed(adaptive_timer) > ADAPTIVE_TERM_MS) {
-        last_key = keycode;
-        adaptive_timer = timer_read();
-        return true;  // Too slow, don't adapt
+#ifndef NO_ACTION_LAYER
+    if (QK_LAYER_TAP <= kc && kc <= QK_LAYER_TAP_MAX) {
+        return (record->tap.count > 0) ? QK_LAYER_TAP_GET_TAP_KEYCODE(kc) : kc;
     }
-
-    // Store current mods state
-    uint8_t mods = get_mods();
-    bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
-    bool caps_word = is_caps_word_on();
-
-        // Check for our specific bigrams
-    bool substitution_made = false;
-    uint16_t replacement_key = KC_NO;
-
-    // "gm" -> "gl"
-    if (last_key == KC_G && keycode == HRM_M) {
-        replacement_key = KC_L;
-        substitution_made = true;
-    }
-    // "uo" -> "ua"
-    else if (last_key == KC_U && keycode == KC_O) {
-        replacement_key = KC_A;
-        substitution_made = true;
-    }
-    // "ae" -> "au"
-    else if (last_key == HRM_A && keycode == HRM_E) {
-        replacement_key = KC_U;
-        substitution_made = true;
-    }
-
-    if (substitution_made) {
-        // Send the replacement key with proper capitalization
-        if (caps_word || shift) {
-            tap_code16(S(replacement_key));  // Send shifted version
-        } else {
-            tap_code(replacement_key);  // Send lowercase
-        }
-    }
-
-    if (substitution_made) {
-        // Update tracking for next potential substitution
-        last_key = keycode;  // Keep original keycode for consistency
-        adaptive_timer = timer_read();
-        return false;  // Don't process the original key
-    }
-
-    // No substitution, update tracking
-    last_key = keycode;
-    adaptive_timer = timer_read();
-    return true;
+#endif
+#endif
+    return kc;
 }
 
+// Ignore contexts where adaptives would be dangerous/noisy.
+static inline bool adaptive_forbidden_context(uint16_t kc, uint8_t mods) {
+    // Don’t adapt while chords/shortcuts are likely (Ctrl/Alt/Gui held),
+    // or on your special macro keys.
+    if (mods & (MOD_MASK_CTRL | MOD_MASK_ALT | MOD_MASK_GUI)) return true;
+    switch (kc) {
+        case LMAGIC: case RMAGIC: case QK_REP:
+        case BRACES: case M_QU: case QUOP:
+            return true;
+    }
+    return false;
+}
+
+// Utilities for concise rules
+#define SEND_UNSHIFTED(k)      do { tap_code(k); } while (0)
+#define SEND_SHIFTED_IF_NEEDED(k) do { \
+    if (is_caps_word_on() || (get_mods() & (MOD_BIT(KC_LSFT)|MOD_BIT(KC_RSFT)))) tap_code16(S(k)); \
+    else tap_code(k); \
+} while (0)
+
+// Replace the just-typed previous char with X (backspace, then X)
+static inline void replace_prev_with(uint16_t k) {
+    tap_code(KC_BSPC);
+    SEND_SHIFTED_IF_NEEDED(k);
+}
+
+// Insert a char before letting current key pass
+static inline void insert_before_current(uint16_t k) {
+    SEND_SHIFTED_IF_NEEDED(k);
+}
+
+// Suppress current key (return false from handler)
+static inline bool suppress_current(void) { return true; }
+
+// Core: returns false if it fully handled output (suppressing original key).
+static bool process_adaptive_promethium(uint16_t keycode, const keyrecord_t *record) {
+    if (!record->event.pressed) return true;
+
+    if (timer_elapsed(prior_keydown_ms) > ADAPTIVE_TERM_MS) return true;
+
+    uint8_t mods = get_mods();
+    if (adaptive_forbidden_context(keycode, mods)) return true;
+
+    uint16_t cur  = unwrap_tap_keycode(keycode, record);
+    uint16_t prev = prior_keycode;
+
+    // LEFT-HAND
+    if (cur == KC_P && prev == KC_F) { replace_prev_with(KC_S); return true; }   // let P through
+    if (cur == KC_D && prev == KC_P) { insert_before_current(KC_W); return false; }
+    if (cur == KC_G && prev == KC_K) { SEND_UNSHIFTED(KC_L); return false; }
+    if (cur == KC_G && prev == KC_W) { SEND_UNSHIFTED(KC_D); return false; }
+    if (cur == KC_V && prev == KC_G) { SEND_UNSHIFTED(KC_T); return false; }
+    if (cur == KC_K && prev == KC_M) { replace_prev_with(KC_L); return true; }   // let K through
+    if (cur == KC_K && prev == KC_H) { replace_prev_with(KC_N); return true; }   // let K through
+    if (cur == KC_M && prev == KC_G) { SEND_UNSHIFTED(KC_L); return false; }
+    if (cur == KC_J && prev == KC_G) { send_string("th"); return false; }
+    if (cur == KC_W && prev == KC_M) { SEND_UNSHIFTED(KC_P); return false; }
+    if (cur == KC_L && (prev == KC_P || prev == KC_B || prev == KC_S)) {
+        SEND_UNSHIFTED(KC_L); return false;
+    }
+
+    // RIGHT-HAND
+    if (cur == KC_B && prev == KC_Y) { replace_prev_with(KC_I); return true; }   // let B through
+    if ((cur == HRM_E || cur == KC_E) && (prev == HRM_A || prev == KC_A)) {
+        SEND_SHIFTED_IF_NEEDED(KC_U); return false;
+    }
+    if (cur == KC_O && prev == KC_U) {
+        SEND_SHIFTED_IF_NEEDED(KC_A); return false;
+    }
+
+    return true; // no adaptive change
+}
+
+
+
+// Add this near your other static variables at the top
+static bool last_key_added_space = false;
+static uint16_t space_adding_keys[] = {
+    LMAGIC, RMAGIC, KC_SPC, HRM_SPC
+    // Add any other keys that might add spaces here
+};
+
+// Add this helper function
+static bool is_space_adding_key(uint16_t keycode) {
+    for (int i = 0; i < sizeof(space_adding_keys)/sizeof(space_adding_keys[0]); i++) {
+        if (space_adding_keys[i] == keycode) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Use this instead of is_punctuation()
+static inline bool will_emit_punctuation_km(uint16_t kc, uint8_t mods) {
+    bool shifted = (mods & MOD_MASK_SHIFT) != 0;
+
+    switch (kc) {
+        /* Keys that are punctuation unshifted already */
+        case KC_DOT:    // . (or ? when shifted)
+        case KC_COMM:   // , (or / when shifted because of your custom_shift_keys)
+        case KC_SCLN:   // ; (or : when shifted)
+        case KC_SLSH:   // /
+        case KC_BSLS:   //
+        case KC_MINS:   // -
+        case KC_EQL:    // =
+        case KC_GRV:    // `
+            return true;
+
+        /* Number row becomes punctuation when shifted: !@#$%^&*() */
+        case KC_1: case KC_2: case KC_3: case KC_4: case KC_5:
+        case KC_6: case KC_7: case KC_8: case KC_9: case KC_0:
+            return shifted;
+
+        default:
+            return false;
+    }
+}
+
+// Convenience: apply unwrap + oneshot
+static inline bool will_emit_punctuation(uint16_t keycode, const keyrecord_t* record) {
+    uint16_t kc  = unwrap_tap_keycode(keycode, record);
+    uint8_t  mods = get_mods() | get_oneshot_mods();
+    return will_emit_punctuation_km(kc, mods);
+}
 
 
 
@@ -1178,67 +793,64 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         uprintf("Processing key: %u, repeat count: %d\n", keycode, get_repeat_key_count());
     }
 
-    // Process adaptive keys BEFORE other processing
-    if (!process_adaptive_keys(keycode, record)) {
-        return false;  // Adaptive key handled it
-    }
+    uint16_t cur_unwrapped = unwrap_tap_keycode(keycode, record);
 
     if (!process_quopostrokey(keycode, record)) { return false; }
+
+
+    if (record->event.pressed && last_key_added_space && will_emit_punctuation(keycode, record)) {
+        tap_code(KC_BSPC);              // remove the trailing magic space
+        last_key_added_space = false;
+    }
+
 
     // Handle space key when it's being repeated
     if (keycode == KC_SPC && get_repeat_key_count() > 0) {
         uprintf("Space is being repeated! Magic state: %s\n",
-               last_magic_state.word ? "exists" : "null");
+               last_magic_state.entry ? "exists" : "null");
 
-        if (last_magic_state.word && record->event.pressed) {
+        if (last_magic_state.entry && record->event.pressed) {
             uprintf("Cycling magic word instead of repeating space\n");
             cycle_last_magic();
             return false;  // Don't send the space
         }
         // Otherwise, let normal space repeat happen
     }
+
+    // Handle space + e + repeat = " ex" rather than " ee"
+    if ((keycode == KC_E || keycode == HRM_E) && get_repeat_key_count() > 0
+        && is_spaceish_key(preprior_keycode)) {
+            tap_code(KC_X);
+            return false;  // Don't send the space
+        }
+
     if (record->event.pressed) {
         uprintf("Key pressed: %u\n", keycode);
+        last_key_added_space = is_space_adding_key(keycode);
+
         switch (keycode) {
             case LMAGIC:
             case RMAGIC:
             case QK_REP:
                 break;                /* keep cycling */
             default:
-                last_magic_state.word = NULL;
+                last_magic_state.entry = NULL;
                 break;
         }
     }
     switch (keycode) {
-        // case HRM_H:
-        //     if (record->tap.count && record->event.pressed) {
-        //         process_hv_macro(false, get_last_keycode());
-        //         return false; // Prevent default tap behavior
-        //     }
-        //     break;
-
-        // case M_HV:
-        //     if (record->event.pressed) {
-        //         process_hv_macro(false, get_last_keycode());
-        //     }
-        //     return false;
-
-        // case M_VH:
-        //     if (record->event.pressed) {
-        //         process_hv_macro(true, get_last_keycode());
-        //     }
-        //     return false;
-
         case LMAGIC:
             if (record->event.pressed) {
                 process_left_magic(get_last_keycode(), get_last_mods());
-            }
+                last_key_added_space = true;  // These always add spaces
+                }
             return false;
 
         case RMAGIC:
             if (record->event.pressed) {
                 // uprintf("RMAGIC pressed! Last key: %u\n", get_last_keycode());
                 process_right_magic(get_last_keycode(), get_last_mods());
+                last_key_added_space = true;  // These always add spaces
             }
             return false;
 
@@ -1279,7 +891,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         case QK_REP:
             if (record->event.pressed) {
                 // Add debug
-                if (last_magic_state.word) {
+                if (last_magic_state.entry) {
                     uprintf("REP: word exists, variant=%d\n", last_magic_state.current_variant);
                     cycle_last_magic();
                     return false;
@@ -1289,6 +901,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     }
     break;
     }
+
+    // Adaptive logic, now pure (doesn't mutate history):
+    bool pass_through = process_adaptive_promethium(keycode, record);
+    if (!pass_through) {
+        // swallowed; do not advance history here
+        return false;
+    }
+
+    // If we got here, we’re actually sending this tap.
+    // Advance history ONCE, here.
+    preprior_keycode = prior_keycode;
+    prior_keycode    = cur_unwrapped;
+    prior_keydown_ms = timer_read();
+
     return true;
 }
 
