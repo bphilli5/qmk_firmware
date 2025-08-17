@@ -80,6 +80,8 @@ enum custom_keycodes {
 
     QUOP, // Quopostrokey
 
+    SMART_PUNC,
+
 };
 
 // Home Row Modifiers
@@ -100,9 +102,6 @@ enum custom_keycodes {
 #define HRM_C RALT_T(KC_C) // Home Row Modifier for C
 #define HRM_SPC LT(_NUM, KC_SPC) // Home Row Modifier for Space
 // Left Non Home Row Modifiers
-// #define HRM_W LT(_SYM, KC_W) // Modifier for W
-// #define HRM_SCLN LT(_SYM, KC_SCLN) // Modifier for SCLN
-// #define HRM_COMM KC_COMM //  Row Modifier for COMM
 #define HRM_BSPC LT(_FUNC, KC_BSPC) // Modifier for BSPC
 #define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DELs
 #define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
@@ -176,7 +175,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
         KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_MINS,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
         KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    KC_SCLN,  HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
-        OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       KC_DOT,     KC_COMM,    OS_RSFT,
+        OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       SMART_PUNC, KC_COMM,    OS_RSFT,
                             A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
     ),
@@ -185,7 +184,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_SYM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
         KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
-        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        LSFT(KC_3), LSFT(KC_9),    LSFT(KC_0),    KC_TRNS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        LSFT(KC_3), S(KC_2),       S(KC_3),       KC_BSLS,    KC_TRNS,  KC_TRNS,
         KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_UNDS,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,
                                                                 QK_LLCK,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    QK_LLCK
@@ -195,7 +194,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_NAV] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGUP,  KC_HOME,    KC_UP,      KC_END,     LCTL(KC_F), KC_TRNS,
-        KC_TRNS,  KC_LALT,    KC_TRNS,    KC_LSFT,    KC_LCTL,    KC_TRNS,                       KC_PGDN,  KC_LEFT,    KC_DOWN,    KC_RGHT,    KC_DEL,     KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGDN,  KC_LEFT,    KC_DOWN,    KC_RGHT,    KC_DEL,     KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_PGUP,    KC_PGDN,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  QK_LLCK
@@ -205,8 +204,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_NUM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_SLSH,    KC_7,       KC_8,       KC_9,       KC_PAST,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_MINS,    KC_1,       KC_2,       KC_3,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_X,       KC_4,       KC_5,       KC_6,       LSFT(KC_5),                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_MINS,    KC_1,       KC_2,       KC_3,       LSFT(KC_5),                       KC_TRNS,  RCTL_T(KC_EQL),RSFT_T(KC_PPLS),    RGUI_T(KC_PPLS),    RALT_T(KC_SLSH),    KC_TRNS,
+        KC_TRNS,  KC_X,       KC_4,       KC_5,       KC_6,       KC_PPLS,                          KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_0,       KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS,   KC_TRNS,    KC_TRNS,   KC_TRNS,  QK_LLCK
     ),
@@ -271,6 +270,105 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 
+// ============================================================================
+// KEY HISTORY SYSTEM - Centralized tracking for all features
+// ============================================================================
+
+#define KEY_HISTORY_LENGTH 3  // Track last 3 keys (adjust as needed)
+
+typedef struct {
+    uint16_t keycode;      // The normalized keycode
+    uint16_t raw_keycode;  // The original keycode (before normalization)
+    uint16_t timestamp;    // When it was pressed (using timer_read())
+    uint8_t mods;          // What mods were active
+    bool pressed;          // Press or release event
+} key_event_t;
+
+// Circular buffer for key history
+static struct {
+    key_event_t events[KEY_HISTORY_LENGTH];
+    uint8_t write_index;  // Where to write next event
+    uint8_t count;        // How many events we've seen total (caps at KEY_HISTORY_LENGTH)
+} key_history = {0};
+
+// Normalize keycode - borrowed from autocorrect.c pattern
+static uint16_t normalize_keycode(uint16_t keycode, keyrecord_t* record, uint8_t mods) {
+    // Handle tap-hold keys
+#ifndef NO_ACTION_TAPPING
+    if (IS_QK_MOD_TAP(keycode)) {
+        if (record->tap.count == 0) return KC_NO;  // Held, not tapped
+        keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
+    }
+#ifndef NO_ACTION_LAYER
+    if (IS_QK_LAYER_TAP(keycode)) {
+        if (record->tap.count == 0) return KC_NO;  // Held, not tapped
+        keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
+    }
+#endif
+#endif
+
+    // Handle shifted keys
+    if (IS_QK_MODS(keycode)) {
+        keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
+    }
+
+    // For M_QU, normalize to KC_Q for history purposes
+    if (keycode == M_QU) {
+        keycode = KC_Q;
+    }
+
+    return keycode;
+}
+
+// Record a key event in history
+static void record_key_event(uint16_t raw_keycode, keyrecord_t* record) {
+    uint8_t mods = get_mods() | get_oneshot_mods();
+    uint16_t normalized = normalize_keycode(raw_keycode, record, mods);
+
+    // Skip non-tap events and modifier keys themselves
+    if (normalized == KC_NO) return;
+    switch (normalized) {
+        case KC_LSFT:
+        case KC_RSFT:
+        case KC_LCTL:
+        case KC_RCTL:
+        case KC_LALT:
+        case KC_RALT:
+        case KC_LGUI:
+        case KC_RGUI:
+            return;  // Don't record modifier keys
+    }
+
+    // Record the event
+    key_event_t* event = &key_history.events[key_history.write_index];
+    event->keycode = normalized;
+    event->raw_keycode = raw_keycode;
+    event->timestamp = timer_read();
+    event->mods = mods;
+    event->pressed = record->event.pressed;
+
+    // Advance the circular buffer
+    key_history.write_index = (key_history.write_index + 1) % KEY_HISTORY_LENGTH;
+    if (key_history.count < KEY_HISTORY_LENGTH) {
+        key_history.count++;
+    }
+}
+
+// Get the Nth most recent key (0 = most recent, 1 = previous, etc.)
+static key_event_t* get_key_history(uint8_t n) {
+    if (n >= key_history.count) return NULL;
+
+    // Calculate index going backwards from write_index
+    uint8_t index = (key_history.write_index + KEY_HISTORY_LENGTH - 1 - n) % KEY_HISTORY_LENGTH;
+    return &key_history.events[index];
+}
+
+// Convenience functions for common queries
+static uint16_t get_prev_keycode(uint8_t n) {
+    key_event_t* event = get_key_history(n);
+    return event ? event->keycode : KC_NO;
+}
+
 void pointing_device_init_user(void) {
     charybdis_set_pointer_dragscroll_enabled(true, true);
 }
@@ -314,6 +412,17 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
     return true;  // Other keys can be repeated.
 }
 
+// ============================================================================
+// CUSTOM REPEAT MAPPINGS
+// ============================================================================
+
+// Define custom repeat behavior for specific keys
+// Format: [previous_key] = replacement_key
+static const uint16_t custom_repeat_map[256] = {
+    [KC_W] = KC_N,     // w + repeat = n
+    // Add more mappings as needed
+};
+
 // Put this near your other small helpers
 static inline bool is_spaceish_key(uint16_t kc) {
     switch (kc) {
@@ -350,62 +459,62 @@ static struct {
 
 // RMAGIC lookup table - indexed by keycode directly
 static const magic_entry_t rmagic_table[256] = {
-    [KC_A] = {true, "all ", {"allow ", "allows ", "allowed ", "allowing ", "allowance "}, 5},
+    [KC_A] = {false, "ll ", {"llow ", "llows ", "llowed ", "llowing ", "llowance "}, 5},
     [KC_B] = {false, "etween ", {NULL}, 0},
-    [KC_C] = {true, "copy ", {"copies ", "copied ", "copying ", "copier ", NULL}, 4},
-    [KC_D] = {true, "difference ", {"differences ", "differential ", "differentiated ", "differentiation ", NULL}, 4},
-    [KC_E] = {true, "every ", {"everyone ", "everything ", "everywhere ", "everybody ", "everyday "}, 5},
-    [KC_F] = {true, "family ", {"families ", "familial ", "familiar ", "familiarity ", NULL}, 4},
+    [KC_C] = {false, "opy ", {"opies ", "opied ", "opying ", "opier ", NULL}, 4},
+    [KC_D] = {false, "ifferent ", {"ifference ", "ifferences ", NULL}, 2},
+    [KC_E] = {false, "very ", {"veryone ", "verything ", "verywhere ", "verybody ", "veryday "}, 5},
+    [KC_F] = {false, "amily ", {"amilies ", "amilial ", "amiliar ", "amiliarity ", NULL}, 4},
     [KC_G] = {true, "GiveWell ", {"GiveWell's ", "GiveWell.org ", "GiveWell-style ", "GiveWell-inspired ", NULL}, 4},
     [KC_H] = {false, "owever ", {NULL}, 0},
-    [KC_I] = {true, "ing ", {"ings ", "ingly ", NULL}, 2},
-    [KC_J] = {true, "just ", {"justify ", "justified ", "justifying ", "justification ", "justice "}, 5},
-    [KC_K] = {true, "know ", {"knows ", "knew ", "knowing ", "known ", "knowledge "}, 5},
+    [KC_I] = {false, "ng ", {"ngs ", "ngly ", NULL}, 2},
+    [KC_J] = {false, "ust ", {"ustify ", "ustified ", "ustifying ", "ustification ", "ustice "}, 5},
+    [KC_K] = {false, "now ", {"nows ", "new ", "nowing ", "nown ", "nowledge "}, 5},
     [KC_L] = {false, "ater ", {NULL}, 0},
-    [KC_M] = {true, "ment ", {"ments ", "mental ", NULL}, 2},
-    [KC_N] = {true, "never ", {"nevertheless ", "nevermore ", NULL}, 2},
-    [KC_O] = {true, "order ", {"orders ", "ordered ", "ordering ", "orderly ", "disorder "}, 5},
-    [KC_P] = {true, "people ", {"person ", "personal ", "personally ", "personnel ", "personalize "}, 5},
-    [KC_Q] = {true, "question ", {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "}, 5},
-    [KC_R] = {true, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
-    [KC_S] = {true, "some ", {"something ", "someone ", "somewhere ", "somehow ", "somebody "}, 5},
-    [KC_T] = {true, "though ", {"thought ", "thoughts ", "through ", NULL}, 3},
-    [KC_U] = {true, "under ", {"understand ", "understood ", "understanding ", "underneath ", "underway "}, 5},
-    [KC_V] = {true, "very ", {"verify ", "verified ", "verifying ", "verification ", NULL}, 4},
-    [KC_W] = {true, "with ", {"without ", "within ", "withstand ", "withheld ", "withering "}, 5},
-    [KC_X] = {true, "expect ", {"expects ", "expected ", "expecting ", "expectation ", "expectedly "}, 5},
-    [KC_Y] = {true, "year ", {"years ", "yearly ", "yearn ", "yearning ", NULL}, 4},
-    [KC_Z] = {true, "ation ", {"ational ", "ationally ", "ations ", NULL}, 3},
+    [KC_M] = {false, "ent ", {"ents ", "ental ", NULL}, 2},
+    [KC_N] = {false, "ever ", {"evertheless ", "evermore ", NULL}, 2},
+    [KC_O] = {false, "rder ", {"rders ", "rdered ", "rdering ", "rderly ", "isorder "}, 5},
+    [KC_P] = {false, "eople ", {"erson ", "ersonal ", "ersonally ", "ersonnel ", "ersonalize "}, 5},
+    [KC_Q] = {false, "uestion ", {"uestions ", "uestioned ", "uestioning ", "uestionable ", "uestionnaire "}, 5},
+    [KC_R] = {false, "he ", {" hese ", " here ", " hen ", " hem ", " hey "}, 5},
+    [KC_S] = {false, "ome ", {"omething ", "omeone ", "omewhere ", "omehow ", "omebody "}, 5},
+    [KC_T] = {false, "hough ", {"hought ", "houghts ", "hrough ", NULL}, 3},
+    [KC_U] = {false, "nder ", {"nderstand ", "nderstood ", "nderstanding ", "nderneath ", "nderway "}, 5},
+    [KC_V] = {false, "ery ", {"erify ", "erified ", "erifying ", "erification ", NULL}, 4},
+    [KC_W] = {false, "ith ", {"ithout ", "ithin ", "ithstand ", "ithheld ", "ithering "}, 5},
+    [KC_X] = {false, "xpect ", {"xpects ", "xpected ", "xpecting ", "xpectation ", "xpectedly "}, 5},
+    [KC_Y] = {false, "ear ", {"ears ", "early ", "earn ", "earning ", NULL}, 4},
+    [KC_Z] = {false, "tion ", {"tional ", "tionally ", "tions ", NULL}, 3},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
     [KC_COMM] = {false, " and ", {NULL}, 0},
 };
 
 // LMAGIC lookup table - indexed by keycode directly
 static const magic_entry_t lmagic_table[256] = {
-    [KC_A] = {true, "again ", {"against ", NULL}, 1},
-    [KC_B] = {true, "become ", {"became ", "becoming ", NULL}, 2},
-    [KC_C] = {true, "could ", {"couldn't ", NULL}, 1},
-    [KC_D] = {true, "death ", {"deaths ", "deathly ", NULL}, 2},
-    [KC_E] = {true, "example ", {"examples ", "exemplary ", "exemplify ", "exemplification ", NULL}, 4},
-    [KC_F] = {true, "find ", {"found ", "finds ", "finding ", "findings ", NULL}, 4},
-    [KC_G] = {true, "government ", {"governments ", "government's ", "governmental ", NULL}, 3},
-    [KC_H] = {true, "house ", {"houses ", "housed ", "housing ", "household ", NULL}, 4},
-    [KC_I] = {true, "include ", {"includes ", "included ", "including ", NULL}, 3},
-    [KC_J] = {true, "join ", {"joins ", "joined ", "joining ", "joint ", NULL}, 4},
-    [KC_K] = {true, "kind ", {"kinds ", "kindly ", "kindness ", "kinder ", NULL}, 4},
-    [KC_L] = {true, "large ", {"larger ", "largest ", "largely ", "largeness ", NULL}, 4},
-    [KC_M] = {true, "make ", {"makes ", "made ", "making ", "makeover ", NULL}, 4},
-    [KC_N] = {true, "number ", {"numbers ", "numbered ", "numbering ", "numerical ", NULL}, 4},
-    [KC_O] = {true, "other ", {"others ", "other's ", "othering ", "otherness ", NULL}, 4},
-    [KC_P] = {false, "a", {NULL}, 0},
+    [KC_A] = {false, "gain ", {"gainst ", NULL}, 1},
+    [KC_B] = {false, "ecome ", {"ecame ", "ecoming ", NULL}, 2},
+    [KC_C] = {false, "ould ", {"ouldn't ", NULL}, 1},
+    [KC_D] = {false, "eath ", {"eaths ", "eathly ", NULL}, 2},
+    [KC_E] = {false, "xample ", {"xamples ", "xemplary ", "xemplify ", "xemplification ", NULL}, 4},
+    [KC_F] = {false, "ind ", {"ound ", "inds ", "inding ", "indings ", NULL}, 4},
+    [KC_G] = {false, "overnment ", {"overnments ", "overnment's ", "overnmental ", NULL}, 3},
+    [KC_H] = {false, "ouse ", {"ouses ", "oused ", "ousing ", "ousehold ", NULL}, 4},
+    [KC_I] = {false, "nclude ", {"ncludes ", "ncluded ", "ncluding ", NULL}, 3},
+    [KC_J] = {false, "oin ", {"oins ", "oined ", "oining ", "oint ", NULL}, 4},
+    [KC_K] = {false, "ind ", {"inds ", "indly ", "indness ", "inder ", NULL}, 4},
+    [KC_L] = {false, "arge ", {"arger ", "argest ", "argely ", "argeness ", NULL}, 4},
+    [KC_M] = {false, "ake ", {"akes ", "ade ", "aking ", "akeover ", NULL}, 4},
+    [KC_N] = {false, "umber ", {"umbers ", "umbered ", "umbering ", "umerical ", NULL}, 4},
+    [KC_O] = {false, "ther ", {"thers ", "ther's ", "thering ", "therness ", NULL}, 4},
+    [KC_P] = {false, "roblem ", {"roblems ", "roblematic ", "roblem-solving ", NULL}, 3},
     [KC_Q] = {true, "QMK ", {"QMK compile ", NULL}, 1},
     [KC_R] = {false, "r ", {NULL}, 0},
     [KC_S] = {false, "everal ", {NULL}, 0},
-    [KC_T] = {true, "tion ", {"tions ", "tional ", "tionally ", NULL}, 3},
-    [KC_U] = {true, "use ", {"uses ", "used ", "using ", "usability ", "user "}, 5},
-    [KC_V] = {true, "value ", {"values ", "valued ", "valuing ", "valuation ", NULL}, 4},
+    [KC_T] = {false, "ion ", {"ions ", "ional ", "ionally ", NULL}, 3},
+    [KC_U] = {false, "se ", {"ses ", "sed ", "sing ", "sability ", "ser "}, 5},
+    [KC_V] = {false, "alue ", {"alues ", "alued ", "aluing ", "aluation ", NULL}, 4},
     [KC_W] = {false, "ould ", {NULL}, 0},
-    [KC_X] = {true, "except ", {"exception ", "exceptions ", "excepting ", NULL}, 3},
+    [KC_X] = {false, "xcept ", {"xception ", "xceptions ", "xcepting ", NULL}, 3},
     [KC_Y] = {false, "o", {NULL}, 0},
     [KC_Z] = {false, "z", {NULL}, 0},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
@@ -641,10 +750,6 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-// ─── Adaptive key state ───────────────────────────────────────────────────────
-static uint16_t prior_keycode = KC_NO;
-static uint16_t preprior_keycode = KC_NO;
-static uint16_t prior_keydown_ms = 0;
 
 // Unwrap QK_MOD_TAP / QK_LAYER_TAP to their tap keycode if this press is a tap.
 static inline uint16_t unwrap_tap_keycode(uint16_t kc, const keyrecord_t *record) {
@@ -696,45 +801,84 @@ static inline void insert_before_current(uint16_t k) {
 static inline bool suppress_current(void) { return true; }
 
 // Core: returns false if it fully handled output (suppressing original key).
+// 1. Update adaptive keys to use history
 static bool process_adaptive_promethium(uint16_t keycode, const keyrecord_t *record) {
     if (!record->event.pressed) return true;
 
-    if (timer_elapsed(prior_keydown_ms) > ADAPTIVE_TERM_MS) return true;
+    // Check if previous key was typed quickly
+    key_event_t* prev_event = get_key_history(1);
+    if (!prev_event || timer_elapsed(prev_event->timestamp) > ADAPTIVE_TERM_MS) {
+        return true;
+    }
 
     uint8_t mods = get_mods();
     if (adaptive_forbidden_context(keycode, mods)) return true;
 
-    uint16_t cur  = unwrap_tap_keycode(keycode, record);
-    uint16_t prev = prior_keycode;
+    uint16_t cur = normalize_keycode(keycode, (keyrecord_t*)record, mods);
+    uint16_t prev = prev_event->keycode;
 
     // LEFT-HAND
-    if (cur == KC_P && prev == KC_F) { replace_prev_with(KC_S); return true; }   // let P through
-    if (cur == KC_D && prev == KC_P) { insert_before_current(KC_W); return false; }
-    if (cur == KC_G && prev == KC_K) { SEND_UNSHIFTED(KC_L); return false; }
-    if (cur == KC_G && prev == KC_W) { SEND_UNSHIFTED(KC_D); return false; }
-    if (cur == KC_V && prev == KC_G) { SEND_UNSHIFTED(KC_T); return false; }
-    if (cur == KC_K && prev == KC_M) { replace_prev_with(KC_L); return true; }   // let K through
-    if (cur == KC_K && prev == KC_H) { replace_prev_with(KC_N); return true; }   // let K through
-    if (cur == KC_M && prev == KC_G) { SEND_UNSHIFTED(KC_L); return false; }
-    if (cur == KC_J && prev == KC_G) { send_string("th"); return false; }
-    if (cur == KC_W && prev == KC_M) { SEND_UNSHIFTED(KC_P); return false; }
-    if (cur == KC_L && (prev == KC_P || prev == KC_B || prev == KC_S)) {
-        SEND_UNSHIFTED(KC_L); return false;
+    if (cur == KC_P && prev == KC_F) { replace_prev_with(KC_S); return true; }
+    if (cur == KC_G && prev == KC_K) {
+        SEND_UNSHIFTED(KC_L);
+        set_last_keycode(KC_L);  // Set last keycode to L
+        return false; }
+    if (cur == KC_G && prev == KC_W) {
+        SEND_UNSHIFTED(KC_D);
+        set_last_keycode(KC_D);  // Set last keycode to D
+        return false; }
+    if (cur == KC_V && prev == KC_G) {
+        SEND_UNSHIFTED(KC_T);
+        set_last_keycode(KC_T);  // Set last keycode to T
+        return false; }
+    if (cur == KC_K && prev == KC_M) { replace_prev_with(KC_L); return true; }
+    if (cur == KC_K && prev == KC_H) { replace_prev_with(KC_N); return true; }
+    if (cur == KC_M && prev == KC_G) {
+        SEND_UNSHIFTED(KC_L);
+        set_last_keycode(KC_L);  // Set last keycode to L
+        return false; }
+    if (cur == KC_J && prev == KC_G) {
+        send_string("th");
+        set_last_keycode(KC_H);  // Set last keycode to H
+        return false; }
+    if (cur == KC_W && prev == KC_M) {
+        SEND_UNSHIFTED(KC_P);
+        set_last_keycode(KC_P);  // Set last keycode to P
+        return false; }
+
+    if (cur == KC_MINS && prev == KC_Y) {
+        SEND_SHIFTED_IF_NEEDED(KC_I);
+        set_last_keycode(KC_I);  // Set last keycode to I
+        return false;
+    }
+    // o + - = oe
+    if (cur == KC_MINS && prev == KC_O) {
+        SEND_SHIFTED_IF_NEEDED(KC_E);
+        set_last_keycode(KC_E);  // Set last keycode to E
+        return false;
+    }
+    // e + ; = eo (semicolon is on the right hand)
+    if (cur == KC_SCLN && (prev == KC_E || prev == HRM_E)) {
+        SEND_SHIFTED_IF_NEEDED(KC_O);
+        set_last_keycode(KC_O);  // Set last keycode to O
+        return false;
     }
 
     // RIGHT-HAND
     if (cur == KC_B && prev == KC_Y) { replace_prev_with(KC_I); return true; }   // let B through
     if ((cur == HRM_E || cur == KC_E) && (prev == HRM_A || prev == KC_A)) {
-        SEND_SHIFTED_IF_NEEDED(KC_U); return false;
+        SEND_SHIFTED_IF_NEEDED(KC_U);
+        set_last_keycode(KC_U);  // Set last keycode to U
+        return false;
     }
     if (cur == KC_O && prev == KC_U) {
-        SEND_SHIFTED_IF_NEEDED(KC_A); return false;
+        SEND_SHIFTED_IF_NEEDED(KC_A);
+        set_last_keycode(KC_A);  // Set last keycode to A
+        return false;
     }
 
     return true; // no adaptive change
 }
-
-
 
 // Add this near your other static variables at the top
 static bool last_key_added_space = false;
@@ -752,6 +896,8 @@ static bool is_space_adding_key(uint16_t keycode) {
     }
     return false;
 }
+
+
 
 // Use this instead of is_punctuation()
 static inline bool will_emit_punctuation_km(uint16_t kc, uint8_t mods) {
@@ -781,30 +927,150 @@ static inline bool will_emit_punctuation_km(uint16_t kc, uint8_t mods) {
 
 // Convenience: apply unwrap + oneshot
 static inline bool will_emit_punctuation(uint16_t keycode, const keyrecord_t* record) {
-    uint16_t kc  = unwrap_tap_keycode(keycode, record);
-    uint8_t  mods = get_mods() | get_oneshot_mods();
+    uint16_t kc = normalize_keycode(keycode, (keyrecord_t*)record, get_mods() | get_oneshot_mods());
+    uint8_t mods = get_mods() | get_oneshot_mods();
     return will_emit_punctuation_km(kc, mods);
 }
 
 
+static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
+    static uint16_t smart_punctuation_timer;
+    static bool should_delete_space;  // Add this to remember state
 
-bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    if (keycode != SMART_PUNC) return true;
+
     if (record->event.pressed) {
-        uprintf("Processing key: %u, repeat count: %d\n", keycode, get_repeat_key_count());
+        smart_punctuation_timer = timer_read();
+        // Remember if we need to delete a space when we release
+        should_delete_space = last_key_added_space;
+        return false;
+    } else {
+        // On release, check if we should delete the trailing space
+        if (should_delete_space) {
+            tap_code(KC_BSPC);
+            should_delete_space = false;
+        }
+
+        // Rest of your release handling...
+        bool was_tap = timer_elapsed(smart_punctuation_timer) < TAPPING_TERM;
+        // ... continue with existing code ...
+
+        if (!was_tap) {
+            // HOLD: Just send plain punctuation based on mods, no space/shift
+            uint8_t mods = get_mods() | get_oneshot_mods();
+            clear_oneshot_mods();
+
+            if (mods & MOD_MASK_ALT) {
+                tap_code16(KC_EXLM);  // Just !
+            } else if (mods & MOD_MASK_SHIFT) {
+                tap_code16(KC_QUES);  // Just ?
+            } else {
+                tap_code(KC_DOT);     // Just .
+            }
+            return false;
+        }
+
+        // TAP: Smart behavior
+        uint8_t mods = get_mods() | get_oneshot_mods();
+
+        // Check if previous character was a digit (no space after decimals)
+        key_event_t* prev_event = get_key_history(1);
+        uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
+        bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+
+        // Clear mods so we send the punctuation cleanly
+        clear_oneshot_mods();
+        clear_mods();
+
+        if (mods & MOD_MASK_ALT) {
+            // Alt+Tap: ! + space + shift
+            tap_code16(KC_EXLM);
+            if (!after_number) {
+                tap_code(KC_SPC);
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
+                last_key_added_space = true;
+            }
+        } else if (mods & MOD_MASK_SHIFT) {
+            // Shift+Tap: ? + space + shift
+            tap_code16(KC_QUES);
+            if (!after_number) {
+                tap_code(KC_SPC);
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
+                last_key_added_space = true;
+            }
+        } else {
+            // Plain Tap: . + maybe space + maybe shift
+            tap_code(KC_DOT);
+            if (!after_number) {
+                tap_code(KC_SPC);
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
+                last_key_added_space = true;
+            }
+        }
+
+        // Restore mods if needed
+        set_mods(mods);
+        return false;
+    }
+}
+
+// ============================================================================
+// PROCESS RECORD DECOMPOSITION - Clean chain of responsibility
+// ============================================================================
+
+// Helper to check if we need to handle key release
+static bool needs_release_handling(uint16_t keycode) {
+    switch (keycode) {
+        case M_QU:       // M_QU needs release handling for hold behavior
+        case SMART_PUNC: // SMART_PUNC needs release handling for tap/hold
+            return true;
+        default:
+            return false;
+    }
+}
+
+// ============================================================================
+// 1. SPECIAL REPEAT HANDLERS - Handle repeat key special cases
+// ============================================================================
+static bool process_repeat_special_cases(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+    if (get_repeat_key_count() == 0) return true;  // No repeat, nothing to handle
+
+    uint16_t last_kc = get_prev_keycode(1);
+    uint16_t prev_prev = get_prev_keycode(2);
+
+    // Check if we have a custom mapping for the last key
+    if (last_kc < 256 && custom_repeat_map[last_kc] != 0) {
+        uint16_t replacement = custom_repeat_map[last_kc];
+
+            // Handle shift/caps word if needed
+            if (is_caps_word_on() || (get_mods() & MOD_MASK_SHIFT)) {
+                tap_code16(S(replacement));
+            } else {
+                tap_code(replacement);
+            }
+
+            // Update last keycode to the replacement so further repeats work
+            set_last_keycode(replacement);
+            return false;  // Fully handled
+        }
+
+    // Handle space + e + repeat = " ex"
+    if ((keycode == KC_E || keycode == HRM_E) && get_repeat_key_count() == 1) {
+
+
+        uprintf("E repeat detected! keycode=%u, repeat_count=%u, prev[2]=%u\n",
+                keycode, get_repeat_key_count(), prev_prev);
+
+        if (is_spaceish_key(prev_prev) || prev_prev == 44) {
+            uprintf("Sending X instead of E\n");
+            tap_code(KC_X);
+            set_last_keycode(KC_X);
+            return false;  // Fully handled
+        }
     }
 
-    uint16_t cur_unwrapped = unwrap_tap_keycode(keycode, record);
-
-    if (!process_quopostrokey(keycode, record)) { return false; }
-
-
-    if (record->event.pressed && last_key_added_space && will_emit_punctuation(keycode, record)) {
-        tap_code(KC_BSPC);              // remove the trailing magic space
-        last_key_added_space = false;
-    }
-
-
-    // Handle space key when it's being repeated
+    // Handle space key when it's being repeated (cycles magic)
     if (keycode == KC_SPC && get_repeat_key_count() > 0) {
         uprintf("Space is being repeated! Magic state: %s\n",
                last_magic_state.entry ? "exists" : "null");
@@ -812,109 +1078,181 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         if (last_magic_state.entry && record->event.pressed) {
             uprintf("Cycling magic word instead of repeating space\n");
             cycle_last_magic();
-            return false;  // Don't send the space
-        }
-        // Otherwise, let normal space repeat happen
-    }
-
-    // Handle space + e + repeat = " ex" rather than " ee"
-    if ((keycode == KC_E || keycode == HRM_E) && get_repeat_key_count() > 0
-        && is_spaceish_key(preprior_keycode)) {
-            tap_code(KC_X);
-            return false;  // Don't send the space
-        }
-
-    if (record->event.pressed) {
-        uprintf("Key pressed: %u\n", keycode);
-        last_key_added_space = is_space_adding_key(keycode);
-
-        switch (keycode) {
-            case LMAGIC:
-            case RMAGIC:
-            case QK_REP:
-                break;                /* keep cycling */
-            default:
-                last_magic_state.entry = NULL;
-                break;
+            return false;  // Fully handled
         }
     }
+
+    return true;  // Not handled, continue processing
+}
+
+// ============================================================================
+// 2. PUNCTUATION CLEANUP - Remove space before punctuation
+// ============================================================================
+static bool process_punctuation_cleanup(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+
+    // If last key added space and this is punctuation, remove the space
+    if (last_key_added_space && will_emit_punctuation(keycode, record)) {
+        tap_code(KC_BSPC);
+        last_key_added_space = false;
+    }
+
+    return true;  // Always continue processing
+}
+
+// ============================================================================
+// 3. MAGIC KEYS PROCESSING
+// ============================================================================
+static bool process_magic_keys(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+
+    // Clear magic state for non-cycling keys
     switch (keycode) {
         case LMAGIC:
-            if (record->event.pressed) {
-                process_left_magic(get_last_keycode(), get_last_mods());
-                last_key_added_space = true;  // These always add spaces
-                }
-            return false;
+        case RMAGIC:
+        case QK_REP:
+            break;  // Keep magic state for these
+        default:
+            last_magic_state.entry = NULL;
+            break;
+    }
+
+    // Handle magic key triggers
+    switch (keycode) {
+        case LMAGIC:
+            process_left_magic(get_last_keycode(), get_last_mods());
+            last_key_added_space = true;
+            return false;  // Fully handled
 
         case RMAGIC:
-            if (record->event.pressed) {
-                // uprintf("RMAGIC pressed! Last key: %u\n", get_last_keycode());
-                process_right_magic(get_last_keycode(), get_last_mods());
-                last_key_added_space = true;  // These always add spaces
-            }
-            return false;
+            process_right_magic(get_last_keycode(), get_last_mods());
+            last_key_added_space = true;
+            return false;  // Fully handled
 
+        case QK_REP:
+            if (last_magic_state.entry) {
+                uprintf("REP: word exists, variant=%d\n", last_magic_state.current_variant);
+                cycle_last_magic();
+                return false;  // Fully handled
+            } else {
+                uprintf("REP: no word stored\n");
+            }
+            break;
+    }
+
+    return true;  // Continue processing
+}
+
+// ============================================================================
+// 4. SPECIAL MACROS - BRACES, SELWORD, SELLINE, M_QU
+// ============================================================================
+static bool process_special_macros(uint16_t keycode, keyrecord_t* record) {
+    switch (keycode) {
         case M_QU:
             return process_qu_macro(keycode, record);
-        case BRACES: {                                       // (), [], {}, <> helper
+
+        case BRACES:
             if (record->event.pressed) {
                 uint8_t active_mods = get_mods() | get_oneshot_mods();
-
                 clear_oneshot_mods();
-                unregister_mods(MOD_MASK_CSAG);            // Ctrl-Shift-Alt-Gui
+                unregister_mods(MOD_MASK_CSAG);
 
-                if (active_mods & MOD_MASK_SHIFT) {        // ⇧ → []
+                if (active_mods & MOD_MASK_SHIFT) {
                     SEND_STRING("[]");
-                } else if (active_mods & MOD_MASK_CTRL) {  // ⌃ → {}
+                } else if (active_mods & MOD_MASK_CTRL) {
                     SEND_STRING("{}");
-                } else if (active_mods & MOD_MASK_ALT) {   // ⌥ → <>
+                } else if (active_mods & MOD_MASK_ALT) {
                     SEND_STRING("<>");
-                } else {                                   // (no mod) → ()
+                } else {
                     SEND_STRING("()");
                 }
-                tap_code(KC_LEFT);                         // cursor inside the pair
-
+                tap_code(KC_LEFT);
                 register_mods(active_mods);
             }
-            return false;          // Tell QMK we handled this key completely
-        }
-        case SELWORD:   // Select Word
+            return false;  // Fully handled
+
+        case SELWORD:
             if (record->event.pressed) {
                 SEND_STRING(SS_LCTL(SS_TAP(X_RGHT) SS_LSFT(SS_TAP(X_LEFT))));
             }
-            return false;
-        case SELLINE:   // Select Line
+            return false;  // Fully handled
+
+        case SELLINE:
             if (record->event.pressed) {
                 SEND_STRING(SS_LCTL(SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END))));
             }
-            return false;
-        case QK_REP:
-            if (record->event.pressed) {
-                // Add debug
-                if (last_magic_state.entry) {
-                    uprintf("REP: word exists, variant=%d\n", last_magic_state.current_variant);
-                    cycle_last_magic();
-                    return false;
-                } else {
-                    uprintf("REP: no word stored\n");
-                }
-    }
-    break;
+            return false;  // Fully handled
     }
 
-    // Adaptive logic, now pure (doesn't mutate history):
-    bool pass_through = process_adaptive_promethium(keycode, record);
-    if (!pass_through) {
-        // swallowed; do not advance history here
-        return false;
+    return true;  // Continue processing
+}
+
+// ============================================================================
+// 5. ADAPTIVE KEYS - Already well-factored
+// ============================================================================
+static bool process_adaptive_keys(uint16_t keycode, keyrecord_t* record) {
+    return process_adaptive_promethium(keycode, record);
+}
+
+// ============================================================================
+// 6. UPDATE STATE - Track what happened for next key press
+// ============================================================================
+static void update_key_state(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return;
+
+    // Update space tracking
+    last_key_added_space = is_space_adding_key(keycode);
+
+    // Debug output
+    uprintf("Key pressed: %u\n", keycode);
+}
+
+// ============================================================================
+// MAIN PROCESS RECORD - Clean and simple
+// ============================================================================
+bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    // 1. Always record key history first (for all features to use)
+    if (record->event.pressed) {
+        record_key_event(keycode, record);
+
+        // Debug with history
+        uprintf("Key: %u, Prev: %u, Prev-2: %u\n",
+                keycode,
+                get_prev_keycode(0),
+                get_prev_keycode(1));
     }
 
-    // If we got here, we’re actually sending this tap.
-    // Advance history ONCE, here.
-    preprior_keycode = prior_keycode;
-    prior_keycode    = cur_unwrapped;
-    prior_keydown_ms = timer_read();
+    // 2. Early exit for release events we don't care about
+    if (!record->event.pressed && !needs_release_handling(keycode)) {
+        return true;
+    }
 
+    // 3. Chain of responsibility - each returns false if fully handled
+    // Order matters! Earlier handlers can prevent later ones from running
+    if (!process_smart_punctuation(keycode, record)) return false;
+
+    // Quopostrokey needs to run early to track word boundaries
+    if (!process_quopostrokey(keycode, record)) return false;
+
+    // Special repeat cases before other processing
+    if (!process_repeat_special_cases(keycode, record)) return false;
+
+    // Punctuation cleanup before sending keys
+    if (!process_punctuation_cleanup(keycode, record)) return false;
+
+    // Magic keys processing
+    if (!process_magic_keys(keycode, record)) return false;
+
+    // Special macros
+    if (!process_special_macros(keycode, record)) return false;
+
+    // Adaptive keys (should be last as it modifies output)
+    if (!process_adaptive_keys(keycode, record)) return false;
+
+    // 4. Update state for next key press
+    update_key_state(keycode, record);
+
+    // 5. Let the key through
     return true;
 }
 
@@ -963,44 +1301,3 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
 
 }
 #endif
-
-
-
-char sentence_case_press_user(uint16_t keycode,
-                              keyrecord_t *record,
-                              uint8_t mods) {
-
-    /* 1️⃣ Ignore the *modifier key* itself – do nothing, don’t clear state.   */
-    if (keycode == KC_LSFT || keycode == KC_RSFT) {
-        return '\0';                // no state change, no classification
-    }
-
-    /* 2️⃣ Copy the stock logic, with one tweak for KC_DOT when shifted.       */
-    if ((mods & ~(MOD_MASK_SHIFT | MOD_BIT(KC_RALT))) == 0) {
-        const bool shifted = mods & MOD_MASK_SHIFT;
-
-        switch (keycode) {
-            case KC_A ... KC_Z:      return 'a';            // letters
-            /* -----------  OUR ONE-LINE CHANGE  ---------------------------- */
-            case KC_DOT:             return shifted ? '.'   // Shift-DOT = “?”
-                                                : '.';      // plain DOT
-            /* -------------------------------------------------------------- */
-            case KC_1:               /* fall through */
-            case KC_SLSH:            return shifted ? '.' : '#';
-            case KC_EXLM:
-            case KC_QUES:            return '.';
-            case KC_2 ... KC_0:
-            case KC_AT ... KC_RPRN:
-            case KC_MINS ... KC_SCLN:
-            case KC_UNDS ... KC_COLN:
-            case KC_GRV:
-            case KC_COMM:            return '#';
-            case KC_SPC:             return ' ';
-            case KC_QUOT:            return '\'';
-        }
-    }
-
-    /* Any other key (navigation, hot-key, etc.) → reset Sentence Case.        */
-    sentence_case_clear();
-    return '\0';
-}
