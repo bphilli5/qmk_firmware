@@ -11,6 +11,7 @@ const uint16_t PROGMEM NI_CAPS[] =  {HRM_N, HRM_I, COMBO_END};
 const uint16_t PROGMEM AE_SELW[] =  {HRM_A, HRM_E, COMBO_END};
 const uint16_t PROGMEM AEI_SELL[] = {HRM_I, HRM_A, HRM_E, COMBO_END};
 const uint16_t PROGMEM GM_BSPC[] =  {KC_G, HRM_M, COMBO_END};
+const uint16_t PROGMEM AI_CAPS[] = {KC_A, KC_I, COMBO_END};
 
 combo_t key_combos[] = {
     COMBO(TH_TAB, KC_TAB),
@@ -22,4 +23,5 @@ combo_t key_combos[] = {
     COMBO(AE_SELW, SELWORD),
     COMBO(AEI_SELL, SELLINE),
     COMBO(GM_BSPC, KC_BSPC),
+    COMBO(AI_CAPS, SEND_STRING("AI ")),
 };

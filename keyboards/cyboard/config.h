@@ -56,5 +56,6 @@
 #define PERMISSIVE_HOLD
 #define TAPPING_TERM 200
 #define FLOW_TAP_TERM 150
+#define COMBO_TERM 30
 #define COMBO_MUST_TAP_PER_COMBO   // ask firmware whether *each* combo must be tapped
 #define TAP_CODE_DELAY 0

@@ -1,4 +1,4 @@
-/* Copyright 2023 Cyboard LLC (@Cyboard-DigitalTailor)
+(/* Copyright 2023 Cyboard LLC (@Cyboard-DigitalTailor)
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
@@ -25,7 +25,7 @@
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
 
-#define COMBO_COUNT 7  // Adjust this number based on how many combos you define
+#define COMBO_COUNT 8  // Adjust this number based on how many combos you define
 
 // Suppress IntelliSense warnings for LAYOUT macros
 #ifdef __INTELLISENSE__
@@ -81,6 +81,7 @@ enum custom_keycodes {
     QUOP, // Quopostrokey
 
     SMART_PUNC,
+    SMART_COMMA,
 
 };
 
@@ -175,7 +176,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
         KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_MINS,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
         KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    KC_SCLN,  HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
-        OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       SMART_PUNC, KC_COMM,    OS_RSFT,
+        OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       SMART_PUNC, SMART_COMMA,OS_RSFT,
                             A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
                                                     LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
     ),
@@ -460,7 +461,7 @@ static struct {
 // RMAGIC lookup table - indexed by keycode directly
 static const magic_entry_t rmagic_table[256] = {
     [KC_A] = {false, "ll ", {"llow ", "llows ", "llowed ", "llowing ", "llowance "}, 5},
-    [KC_B] = {false, "etween ", {NULL}, 0},
+    [KC_B] = {false, "efore ", {NULL}, 0},
     [KC_C] = {false, "opy ", {"opies ", "opied ", "opying ", "opier ", NULL}, 4},
     [KC_D] = {false, "ifferent ", {"ifference ", "ifferences ", NULL}, 2},
     [KC_E] = {false, "very ", {"veryone ", "verything ", "verywhere ", "verybody ", "veryday "}, 5},
@@ -482,7 +483,7 @@ static const magic_entry_t rmagic_table[256] = {
     [KC_U] = {false, "nder ", {"nderstand ", "nderstood ", "nderstanding ", "nderneath ", "nderway "}, 5},
     [KC_V] = {false, "ery ", {"erify ", "erified ", "erifying ", "erification ", NULL}, 4},
     [KC_W] = {false, "ith ", {"ithout ", "ithin ", "ithstand ", "ithheld ", "ithering "}, 5},
-    [KC_X] = {false, "xpect ", {"xpects ", "xpected ", "xpecting ", "xpectation ", "xpectedly "}, 5},
+    [KC_X] = {true, "expect ", {"expects ", "expected ", "expecting ", "expectation ", "expectedly "}, 5},
     [KC_Y] = {false, "ear ", {"ears ", "early ", "earn ", "earning ", NULL}, 4},
     [KC_Z] = {false, "tion ", {"tional ", "tionally ", "tions ", NULL}, 3},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
@@ -492,7 +493,7 @@ static const magic_entry_t rmagic_table[256] = {
 // LMAGIC lookup table - indexed by keycode directly
 static const magic_entry_t lmagic_table[256] = {
     [KC_A] = {false, "gain ", {"gainst ", NULL}, 1},
-    [KC_B] = {false, "ecome ", {"ecame ", "ecoming ", NULL}, 2},
+    [KC_B] = {false, "ecause ", {"ecome ", NULL}, 1},
     [KC_C] = {false, "ould ", {"ouldn't ", NULL}, 1},
     [KC_D] = {false, "eath ", {"eaths ", "eathly ", NULL}, 2},
     [KC_E] = {false, "xample ", {"xamples ", "xemplary ", "xemplify ", "xemplification ", NULL}, 4},
@@ -514,7 +515,7 @@ static const magic_entry_t lmagic_table[256] = {
     [KC_U] = {false, "se ", {"ses ", "sed ", "sing ", "sability ", "ser "}, 5},
     [KC_V] = {false, "alue ", {"alues ", "alued ", "aluing ", "aluation ", NULL}, 4},
     [KC_W] = {false, "ould ", {NULL}, 0},
-    [KC_X] = {false, "xcept ", {"xception ", "xceptions ", "xcepting ", NULL}, 3},
+    [KC_X] = {true, "except ", {"exception ", "exceptions ", "excepting ", NULL}, 3},
     [KC_Y] = {false, "o", {NULL}, 0},
     [KC_Z] = {false, "z", {NULL}, 0},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
@@ -1014,6 +1015,39 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
     }
 }
 
+// Updated smart comma handler with shift = slash
+static bool process_smart_comma(uint16_t keycode, keyrecord_t* record) {
+    if (keycode != SMART_COMMA) return true;
+
+    if (record->event.pressed) {
+        uint8_t mods = get_mods() | get_oneshot_mods();
+        bool shifted = mods & MOD_MASK_SHIFT;
+
+        if (shifted) {
+            // Shift + comma = slash (no auto-space for slash)
+            // Need to clear shift temporarily since slash is already on its own key
+            clear_mods();
+            clear_oneshot_mods();
+            tap_code(KC_SLSH);
+            set_mods(mods);  // Restore mods
+        } else {
+            // Regular comma with smart spacing
+            // Check if previous character was a digit (no space after decimals)
+            key_event_t* prev_event = get_key_history(1);
+            uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
+            bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+
+            tap_code(KC_COMM);
+
+            if (!after_number) {
+                tap_code(KC_SPC);
+                last_key_added_space = true;
+            }
+        }
+    }
+    return false;
+}
+
 // ============================================================================
 // PROCESS RECORD DECOMPOSITION - Clean chain of responsibility
 // ============================================================================
@@ -1230,6 +1264,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     // 3. Chain of responsibility - each returns false if fully handled
     // Order matters! Earlier handlers can prevent later ones from running
     if (!process_smart_punctuation(keycode, record)) return false;
+    if (!process_smart_comma(keycode, record)) return false;
 
     // Quopostrokey needs to run early to track word boundaries
     if (!process_quopostrokey(keycode, record)) return false;
@@ -1301,3 +1336,4 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
 
 }
 #endif
+)

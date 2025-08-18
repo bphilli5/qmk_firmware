@@ -1,0 +1,7 @@
+:i:           -> I
+:im:          -> I'm
+:ill:         -> I'll
+:ive:         -> I've
+:id:          -> I'd
+:brnd:        -> brendanphillips94@gmail.com
+:bp:          -> Brendan Phillips
