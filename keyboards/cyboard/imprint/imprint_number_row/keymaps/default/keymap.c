@@ -1,4 +1,4 @@
-(/* Copyright 2023 Cyboard LLC (@Cyboard-DigitalTailor)
+/* Copyright 2023 Cyboard LLC (@Cyboard-DigitalTailor)
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
@@ -83,7 +83,13 @@ enum custom_keycodes {
     SMART_PUNC,
     SMART_COMMA,
 
+    AI_CAPS,
+
+    JIGGLER,
+
 };
+
+
 
 // Home Row Modifiers
 // Right Hand Side
@@ -184,8 +190,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 1 - Symbols
     [_SYM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        LSFT(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
-        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        LSFT(KC_3), S(KC_2),       S(KC_3),       KC_BSLS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        S(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
+        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        S(KC_3), S(KC_2),       S(KC_3),       KC_BSLS,    KC_TRNS,  KC_TRNS,
         KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_UNDS,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,
                                                                 QK_LLCK,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    QK_LLCK
@@ -421,6 +427,7 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
 // Format: [previous_key] = replacement_key
 static const uint16_t custom_repeat_map[256] = {
     [KC_W] = KC_N,     // w + repeat = n
+    [KC_BSPC] = C(KC_BSPC), // Backspace + repeat = Backspace
     // Add more mappings as needed
 };
 
@@ -487,7 +494,7 @@ static const magic_entry_t rmagic_table[256] = {
     [KC_Y] = {false, "ear ", {"ears ", "early ", "earn ", "earning ", NULL}, 4},
     [KC_Z] = {false, "tion ", {"tional ", "tionally ", "tions ", NULL}, 3},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
-    [KC_COMM] = {false, " and ", {NULL}, 0},
+    [KC_COMM] = {false, "and ", {NULL}, 0},
 };
 
 // LMAGIC lookup table - indexed by keycode directly
@@ -519,7 +526,7 @@ static const magic_entry_t lmagic_table[256] = {
     [KC_Y] = {false, "o", {NULL}, 0},
     [KC_Z] = {false, "z", {NULL}, 0},
     [KC_SPC] = {false, "the ", {" these ", " there ", " then ", " them ", " they "}, 5},
-    [KC_COMM] = {false, " but ", {NULL}, 0},
+    [KC_COMM] = {false, "but ", {NULL}, 0},
 };
 
 // Special handling for M_QU keycode mappings
@@ -936,13 +943,12 @@ static inline bool will_emit_punctuation(uint16_t keycode, const keyrecord_t* re
 
 static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
     static uint16_t smart_punctuation_timer;
-    static bool should_delete_space;  // Add this to remember state
+    static bool should_delete_space;
 
     if (keycode != SMART_PUNC) return true;
 
     if (record->event.pressed) {
         smart_punctuation_timer = timer_read();
-        // Remember if we need to delete a space when we release
         should_delete_space = last_key_added_space;
         return false;
     } else {
@@ -952,9 +958,7 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
             should_delete_space = false;
         }
 
-        // Rest of your release handling...
         bool was_tap = timer_elapsed(smart_punctuation_timer) < TAPPING_TERM;
-        // ... continue with existing code ...
 
         if (!was_tap) {
             // HOLD: Just send plain punctuation based on mods, no space/shift
@@ -962,54 +966,59 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
             clear_oneshot_mods();
 
             if (mods & MOD_MASK_ALT) {
-                tap_code16(KC_EXLM);  // Just !
+                tap_code16(KC_EXLM);
+                set_last_keycode(KC_EXLM);  // Set last keycode
             } else if (mods & MOD_MASK_SHIFT) {
-                tap_code16(KC_QUES);  // Just ?
+                tap_code16(KC_QUES);
+                set_last_keycode(KC_QUES);  // Set last keycode
             } else {
-                tap_code(KC_DOT);     // Just .
+                tap_code(KC_DOT);
+                set_last_keycode(KC_DOT);   // Set last keycode
             }
             return false;
         }
 
         // TAP: Smart behavior
         uint8_t mods = get_mods() | get_oneshot_mods();
-
-        // Check if previous character was a digit (no space after decimals)
         key_event_t* prev_event = get_key_history(1);
         uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
         bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
 
-        // Clear mods so we send the punctuation cleanly
         clear_oneshot_mods();
         clear_mods();
 
         if (mods & MOD_MASK_ALT) {
-            // Alt+Tap: ! + space + shift
             tap_code16(KC_EXLM);
             if (!after_number) {
                 tap_code(KC_SPC);
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 last_key_added_space = true;
+                set_last_keycode(KC_SPC);  // Set to space since we added one
+            } else {
+                set_last_keycode(KC_EXLM);  // Set to exclamation if no space
             }
         } else if (mods & MOD_MASK_SHIFT) {
-            // Shift+Tap: ? + space + shift
             tap_code16(KC_QUES);
             if (!after_number) {
                 tap_code(KC_SPC);
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 last_key_added_space = true;
+                set_last_keycode(KC_SPC);  // Set to space since we added one
+            } else {
+                set_last_keycode(KC_QUES);  // Set to question if no space
             }
         } else {
-            // Plain Tap: . + maybe space + maybe shift
             tap_code(KC_DOT);
             if (!after_number) {
                 tap_code(KC_SPC);
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 last_key_added_space = true;
+                set_last_keycode(KC_SPC);  // Set to space since we added one
+            } else {
+                set_last_keycode(KC_DOT);   // Set to dot if no space
             }
         }
 
-        // Restore mods if needed
         set_mods(mods);
         return false;
     }
@@ -1025,14 +1034,13 @@ static bool process_smart_comma(uint16_t keycode, keyrecord_t* record) {
 
         if (shifted) {
             // Shift + comma = slash (no auto-space for slash)
-            // Need to clear shift temporarily since slash is already on its own key
             clear_mods();
             clear_oneshot_mods();
             tap_code(KC_SLSH);
-            set_mods(mods);  // Restore mods
+            set_mods(mods);
+            set_last_keycode(KC_SLSH);  // Set last keycode to slash
         } else {
             // Regular comma with smart spacing
-            // Check if previous character was a digit (no space after decimals)
             key_event_t* prev_event = get_key_history(1);
             uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
             bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
@@ -1042,6 +1050,10 @@ static bool process_smart_comma(uint16_t keycode, keyrecord_t* record) {
             if (!after_number) {
                 tap_code(KC_SPC);
                 last_key_added_space = true;
+                // You want comma to be remembered as comma even with space
+                set_last_keycode(KC_COMM);  // Set to comma as requested
+            } else {
+                set_last_keycode(KC_COMM);  // Set to comma
             }
         }
     }
@@ -1077,22 +1089,28 @@ static bool process_repeat_special_cases(uint16_t keycode, keyrecord_t* record) 
     if (last_kc < 256 && custom_repeat_map[last_kc] != 0) {
         uint16_t replacement = custom_repeat_map[last_kc];
 
-            // Handle shift/caps word if needed
+        // Check if it's a modified keycode (like C(KC_BSPC))
+        if (IS_QK_MODS(replacement)) {
+            tap_code16(replacement);  // tap_code16 handles modified keycodes
+        } else {
+            // Handle shift/caps word if needed for regular keys
             if (is_caps_word_on() || (get_mods() & MOD_MASK_SHIFT)) {
                 tap_code16(S(replacement));
             } else {
                 tap_code(replacement);
             }
-
-            // Update last keycode to the replacement so further repeats work
-            set_last_keycode(replacement);
-            return false;  // Fully handled
         }
 
-    // Handle space + e + repeat = " ex"
+        // Update last keycode to the base keycode of replacement
+        uint16_t base_kc = IS_QK_MODS(replacement) ?
+                          QK_MODS_GET_BASIC_KEYCODE(replacement) :
+                          replacement;
+        set_last_keycode(base_kc);
+        return false;  // Fully handled
+    }
+
+    // Handle space + e + repeat = " ex" (rest of your existing code)
     if ((keycode == KC_E || keycode == HRM_E) && get_repeat_key_count() == 1) {
-
-
         uprintf("E repeat detected! keycode=%u, repeat_count=%u, prev[2]=%u\n",
                 keycode, get_repeat_key_count(), prev_prev);
 
@@ -1216,6 +1234,14 @@ static bool process_special_macros(uint16_t keycode, keyrecord_t* record) {
                 SEND_STRING(SS_LCTL(SS_TAP(X_HOME) SS_LSFT(SS_TAP(X_END))));
             }
             return false;  // Fully handled
+
+        case AI_CAPS:
+            if (record->event.pressed) {
+                SEND_STRING("AI ");
+                set_last_keycode(KC_SPC);  // Set last keycode to space
+                last_key_added_space = true;  // Also mark that we added a space
+            }
+            return false;  // Fully handled
     }
 
     return true;  // Continue processing
@@ -1284,6 +1310,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     // Adaptive keys (should be last as it modifies output)
     if (!process_adaptive_keys(keycode, record)) return false;
 
+
     // 4. Update state for next key press
     update_key_state(keycode, record);
 
@@ -1312,7 +1339,8 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 const custom_shift_key_t custom_shift_keys[] = {
   {KC_DOT , KC_QUES},  // Shift . is ?
   {KC_COMM, KC_SLSH},  // Shift , is /
-  {KC_BSPC, KC_DEL},   // Shift Backspace is Delete]
+  {KC_BSPC, KC_DEL},   // Shift Backspace is Delete
+  {HRM_BSPC, KC_DEL},  // Shift Backspace is Delete
 };
 
 #ifdef COMBO_MUST_TAP_PER_COMBO
@@ -1336,4 +1364,3 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
 
 }
 #endif
-)
