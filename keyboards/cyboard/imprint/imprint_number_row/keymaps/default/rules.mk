@@ -8,7 +8,7 @@ COMBO_ENABLE = yes
 CAPS_WORD_ENABLE = yes
 LAYER_LOCK_ENABLE = yes
 REPEAT_KEY_ENABLE = yes
-AUTO_CORRECT_ENABLE = yes
+AUTOCORRECT_ENABLE = yes
 
 # For combo definitions (uses introspection)
 ifeq ($(strip $(COMBO_ENABLE)), yes)
