@@ -24,6 +24,7 @@
 #include "repeat_key.h"
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
+#include "deferred_exec.h"
 
 #define COMBO_COUNT 8  // Adjust this number based on how many combos you define
 
@@ -60,7 +61,8 @@ enum led_states {
     LAYER_ENTHIUM,
     LAYER_GAME,
     ACTION_CAPS_WORD,
-    ACTION_CAPS_LOCK
+    ACTION_CAPS_LOCK,
+    ACTION_JIGGLER,
 };
 
 enum custom_keycodes {
@@ -89,6 +91,15 @@ enum custom_keycodes {
 
 };
 
+/// ============================================================================
+// MOUSE JIGGLER STATE VARIABLES
+// ============================================================================
+static deferred_token jiggler_token = INVALID_DEFERRED_TOKEN;
+static report_mouse_t jiggler_report = {0};
+static bool jiggler_active = false;
+
+// Forward declaration of jiggler function
+static bool process_jiggler(uint16_t keycode, keyrecord_t* record);
 
 
 // Home Row Modifiers
@@ -170,6 +181,9 @@ void set_led_colors(enum led_states led_state) {
         case ACTION_CAPS_LOCK:
             rgb_matrix_sethsv(HSV_RED);
             return;
+        case ACTION_JIGGLER:
+            rgb_matrix_mode_noeeprom(RGB_MATRIX_RAINBOW_MOVING_CHEVRON);
+            return;
         default:
             rgb_matrix_sethsv(HSV_PURPLE);
             // rgb_matrix_mode_noeeprom(RGB_MATRIX_DEFAULT_MODE);
@@ -222,7 +236,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(_BASE),
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   QK_BOOT,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   JIGGLER,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  QK_LLCK
     ),
@@ -380,29 +394,38 @@ void pointing_device_init_user(void) {
     charybdis_set_pointer_dragscroll_enabled(true, true);
 }
 
-void oneshot_mods_changed_user(uint8_t mods) {
-    if (mods & MOD_MASK_SHIFT) {
-        set_led_colors(ACTION_CAPS_WORD);
-    } else {
-        set_led_colors(get_highest_layer(layer_state));
-    }
-}
-
 void caps_word_set_user(bool active) {
-    if (active) {
-        set_led_colors(ACTION_CAPS_WORD);
-    } else {
-        set_led_colors(get_highest_layer(layer_state));
+    // Don't change LED if jiggler is active
+    if (!jiggler_active) {
+        if (active) {
+            set_led_colors(ACTION_CAPS_WORD);
+        } else {
+            set_led_colors(get_highest_layer(layer_state));
+        }
     }
 }
 
 bool led_update_user(led_t led_state) {
-    if (led_state.caps_lock) {                // Caps Lock just turned ON
-        set_led_colors(ACTION_CAPS_LOCK);
-    } else if (!is_caps_word_on()) {          // avoid wiping the blue Caps-Word colour
-        set_led_colors(get_highest_layer(layer_state));
+    // Don't change LED if jiggler is active
+    if (!jiggler_active) {
+        if (led_state.caps_lock) {
+            set_led_colors(ACTION_CAPS_LOCK);
+        } else if (!is_caps_word_on()) {
+            set_led_colors(get_highest_layer(layer_state));
+        }
     }
-    return true;  // let keyboard-level code (if any) run too
+    return true;
+}
+
+void oneshot_mods_changed_user(uint8_t mods) {
+    // Don't change LED if jiggler is active
+    if (!jiggler_active) {
+        if (mods & MOD_MASK_SHIFT) {
+            set_led_colors(ACTION_CAPS_WORD);
+        } else {
+            set_led_colors(get_highest_layer(layer_state));
+        }
+    }
 }
 
 
@@ -417,6 +440,72 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
             return false;  // Magic keys will ignore the above keycodes.
     }
     return true;  // Other keys can be repeated.
+}
+
+// ============================================================================
+// MOUSE JIGGLER - Circular motion to prevent sleep
+// ============================================================================
+
+// Jiggler callback - moves mouse in a smooth circle
+uint32_t jiggler_callback(uint32_t trigger_time, void* cb_arg) {
+    // Deltas to move in a circle of radius 20 pixels over 32 frames
+    static const int8_t deltas[32] = {
+        0, -1, -2, -2, -3, -3, -4, -4, -4, -4, -3, -3, -2, -2, -1, 0,
+        0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 3, 3, 2, 2, 1, 0
+    };
+    static uint8_t phase = 0;
+
+    // Get x delta from table and y delta by rotating a quarter cycle
+    jiggler_report.x = deltas[phase];
+    jiggler_report.y = deltas[(phase + 8) & 31];
+    phase = (phase + 1) & 31;
+
+    host_mouse_send(&jiggler_report);
+    return 16;  // Call every 16ms for smooth 60fps motion
+}
+
+// Stop the jiggler
+static void stop_jiggler(void) {
+    if (jiggler_token != INVALID_DEFERRED_TOKEN) {
+        cancel_deferred_exec(jiggler_token);
+        jiggler_token = INVALID_DEFERRED_TOKEN;
+        jiggler_report = (report_mouse_t){};  // Clear mouse movement
+        host_mouse_send(&jiggler_report);
+        jiggler_active = false;
+
+        // Restore normal LED color for current layer
+        set_led_colors(get_highest_layer(layer_state));
+    }
+}
+
+// Toggle the jiggler
+static bool process_jiggler(uint16_t keycode, keyrecord_t* record) {
+    if (keycode != JIGGLER) return true;
+
+    if (record->event.pressed) {
+        if (jiggler_token == INVALID_DEFERRED_TOKEN) {
+            // Start jiggler
+            jiggler_token = defer_exec(1, jiggler_callback, NULL);
+            jiggler_active = true;
+
+            // Set LED to green while jiggler is active
+            rgb_matrix_sethsv_noeeprom(HSV_GREEN);
+        } else {
+            // Stop jiggler
+            stop_jiggler();
+        }
+    }
+    return false;  // Fully handled
+}
+
+// Check if we should stop jiggler on other keypresses
+static void check_jiggler_interrupt(uint16_t keycode, keyrecord_t* record) {
+    // Stop jiggler on any keypress except JIGGLER itself
+    if (record->event.pressed &&
+        jiggler_token != INVALID_DEFERRED_TOKEN &&
+        keycode != JIGGLER) {
+        stop_jiggler();
+    }
 }
 
 // ============================================================================
@@ -674,9 +763,13 @@ bool caps_word_press_user(uint16_t keycode) {
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    set_led_colors(get_highest_layer(state));
+    // Don't change LED if jiggler is active
+    if (!jiggler_active) {
+        set_led_colors(get_highest_layer(state));
+    }
     return state;
 }
+
 static bool process_qu_macro(uint16_t keycode, keyrecord_t* record) {
     static uint16_t q_timer;
 
@@ -1199,6 +1292,9 @@ static bool process_magic_keys(uint16_t keycode, keyrecord_t* record) {
 // 4. SPECIAL MACROS - BRACES, SELWORD, SELLINE, M_QU
 // ============================================================================
 static bool process_special_macros(uint16_t keycode, keyrecord_t* record) {
+    // Handle jiggler
+    if (!process_jiggler(keycode, record)) return false;
+
     switch (keycode) {
         case M_QU:
             return process_qu_macro(keycode, record);
@@ -1271,9 +1367,12 @@ static void update_key_state(uint16_t keycode, keyrecord_t* record) {
 // MAIN PROCESS RECORD - Clean and simple
 // ============================================================================
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
-    // 1. Always record key history first (for all features to use)
+    // 1. Always record key history first
     if (record->event.pressed) {
         record_key_event(keycode, record);
+
+        // Check if we should stop the jiggler
+        check_jiggler_interrupt(keycode, record);
 
         // Debug with history
         uprintf("Key: %u, Prev: %u, Prev-2: %u\n",
