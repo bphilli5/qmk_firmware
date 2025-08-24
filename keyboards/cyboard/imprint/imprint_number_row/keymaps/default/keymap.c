@@ -204,9 +204,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 1 - Symbols
     [_SYM] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,                        KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        S(KC_6), LSFT(KC_LBRC), LSFT(KC_RBRC), LSFT(KC_4), KC_ENT,   KC_TRNS,
-        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        S(KC_3), S(KC_2),       S(KC_3),       KC_BSLS,    KC_TRNS,  KC_TRNS,
-        KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_UNDS,        KC_UNDS,        KC_TRNS,                        LSFT(KC_2), KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  KC_GRV,       KC_EQL,         KC_MINS,        KC_MINS,        KC_BSLS,                        S(KC_6),    S(KC_LBRC),    S(KC_RBRC),    S(KC_4),    KC_ENT,   KC_TRNS,
+        KC_TRNS,  S(KC_1),      S(KC_8),        KC_EQL,         KC_EQL,         KC_TRNS,                        S(KC_3),    S(KC_2),       S(KC_3),       KC_BSLS,    KC_TRNS,  KC_TRNS,
+        KC_TRNS,  S(KC_GRV),    S(KC_EQL),      KC_UNDS,        KC_UNDS,        KC_TRNS,                        S(KC_2),    KC_LBRC,       KC_RBRC,       KC_TRNS,    KC_TRNS,  KC_TRNS,
                                 KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    KC_TRNS,       KC_TRNS,       KC_TRNS,
                                                                 QK_LLCK,        KC_TRNS,    KC_TRNS,   KC_TRNS, KC_TRNS,    QK_LLCK
     ),
@@ -235,8 +235,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_FUNC] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(_BASE),
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   QK_BOOT,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  RGB_TOG,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   JIGGLER,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  RGB_TOG,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   JIGGLER,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  QK_LLCK
     ),
@@ -295,7 +295,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // KEY HISTORY SYSTEM - Centralized tracking for all features
 // ============================================================================
 
-#define KEY_HISTORY_LENGTH 3  // Track last 3 keys (adjust as needed)
+#define KEY_HISTORY_LENGTH 8  // Track last 3 keys (adjust as needed)
 
 typedef struct {
     uint16_t keycode;      // The normalized keycode
@@ -389,6 +389,33 @@ static uint16_t get_prev_keycode(uint8_t n) {
     key_event_t* event = get_key_history(n);
     return event ? event->keycode : KC_NO;
 }
+
+static inline bool is_word_boundary_key(uint16_t kc) {
+    switch (kc) {
+        case KC_NO:       // start of buffer
+        case KC_SPC:
+        case HRM_SPC:
+        case RMAGIC:
+        case LMAGIC:
+        case KC_TAB:
+        case KC_ENT:
+        case KC_COMM:
+        case KC_DOT:
+        case KC_SCLN:
+        case KC_MINS:
+        case KC_SLSH:
+        case KC_BSLS:
+        case KC_LBRC:
+        case KC_RBRC:
+        case KC_GRV:
+        case KC_QUOT:
+        case QUOP:
+            return true;
+        default:
+            return false;
+    }
+}
+
 
 void pointing_device_init_user(void) {
     charybdis_set_pointer_dragscroll_enabled(true, true);
@@ -489,7 +516,7 @@ static bool process_jiggler(uint16_t keycode, keyrecord_t* record) {
             jiggler_active = true;
 
             // Set LED to green while jiggler is active
-            rgb_matrix_sethsv_noeeprom(HSV_GREEN);
+            rgb_matrix_mode_noeeprom(RGB_MATRIX_RAINBOW_MOVING_CHEVRON);
         } else {
             // Stop jiggler
             stop_jiggler();
@@ -532,6 +559,14 @@ static inline bool is_spaceish_key(uint16_t kc) {
     return false;
 }
 
+// Tracks whether the active one-shot shift came from SMART_PUNC
+static bool smart_punc_oss_active = false;
+
+static inline bool is_alpha_keycode(uint16_t kc) {
+    return (kc >= KC_A && kc <= KC_Z);
+}
+
+
 // ============================================================================
 // MAGIC KEYS REFACTORING - Add this section to replace your existing magic code
 // ============================================================================
@@ -556,14 +591,14 @@ static struct {
 
 // RMAGIC lookup table - indexed by keycode directly
 static const magic_entry_t rmagic_table[256] = {
-    [KC_A] = {false, "ll ", {"llow ", "llows ", "llowed ", "llowing ", "llowance "}, 5},
+    [KC_A] = {false, "bout ", {NULL}, 0},
     [KC_B] = {false, "efore ", {NULL}, 0},
     [KC_C] = {false, "opy ", {"opies ", "opied ", "opying ", "opier ", NULL}, 4},
     [KC_D] = {false, "ifferent ", {"ifference ", "ifferences ", NULL}, 2},
     [KC_E] = {false, "very ", {"veryone ", "verything ", "verywhere ", "verybody ", "veryday "}, 5},
     [KC_F] = {false, "amily ", {"amilies ", "amilial ", "amiliar ", "amiliarity ", NULL}, 4},
     [KC_G] = {true, "GiveWell ", {"GiveWell's ", "GiveWell.org ", "GiveWell-style ", "GiveWell-inspired ", NULL}, 4},
-    [KC_H] = {false, "owever ", {NULL}, 0},
+    [KC_H] = {false, "ow ", {"owever ", NULL}, 1},
     [KC_I] = {false, "ng ", {"ngs ", "ngly ", NULL}, 2},
     [KC_J] = {false, "ust ", {"ustify ", "ustified ", "ustifying ", "ustification ", "ustice "}, 5},
     [KC_K] = {false, "now ", {"nows ", "new ", "nowing ", "nown ", "nowledge "}, 5},
@@ -573,7 +608,7 @@ static const magic_entry_t rmagic_table[256] = {
     [KC_O] = {false, "rder ", {"rders ", "rdered ", "rdering ", "rderly ", "isorder "}, 5},
     [KC_P] = {false, "eople ", {"erson ", "ersonal ", "ersonally ", "ersonnel ", "ersonalize "}, 5},
     [KC_Q] = {false, "uestion ", {"uestions ", "uestioned ", "uestioning ", "uestionable ", "uestionnaire "}, 5},
-    [KC_R] = {false, "he ", {" hese ", " here ", " hen ", " hem ", " hey "}, 5},
+    [KC_R] = {true, " the ", {" these ", " there ", " then ", " them ", " they "}, 5},
     [KC_S] = {false, "ome ", {"omething ", "omeone ", "omewhere ", "omehow ", "omebody "}, 5},
     [KC_T] = {false, "hough ", {"hought ", "houghts ", "hrough ", NULL}, 3},
     [KC_U] = {false, "nder ", {"nderstand ", "nderstood ", "nderstanding ", "nderneath ", "nderway "}, 5},
@@ -683,63 +718,116 @@ static void cycle_last_magic(void) {
     set_last_keycode(last_magic_state.repeat_keycode);
 }
 
+static inline bool is_alpha_key(uint16_t kc) {
+    return (kc >= KC_A && kc <= KC_Z);
+}
+
+// Scan history *before* the current keypress (index 1..)
+// Apply backspaces to prior alphas and return the surviving last alpha.
+// Returns KC_NO if none found.
+static uint16_t last_alpha_after_backspaces(void) {
+    uint16_t backs = 0;
+
+    // start at 1 to skip the current key we just recorded
+    for (uint8_t i = 1; i < key_history.count; i++) {
+        key_event_t *ev = get_key_history(i);
+        if (!ev || !ev->pressed) continue;  // only care about key-downs
+
+        uint16_t kc = ev->keycode;
+        // Your normalize_keycode already turns M_QU into KC_Q etc.
+
+        if (kc == KC_BSPC) {
+            backs++;
+            continue;
+        }
+
+        if (is_alpha_key(kc)) {
+            if (backs > 0) {
+                backs--;        // this alpha was deleted by a backspace
+            } else {
+                return kc;      // this is the effective last alpha
+            }
+        }
+
+        // Non-alpha characters don't affect the alpha backspace budget.
+        // If you want punctuation to be “consumed” by backspace first,
+        // leave this as-is; we only care about “last alpha” for magic.
+    }
+    return KC_NO;
+}
+
+
 // 7. REPLACE your process_right_magic and process_left_magic functions with:
 static void process_right_magic(uint16_t keycode, uint8_t mods) {
-    last_magic_state.entry = NULL;  // Reset last magic state
+    last_magic_state.entry = NULL;
 
-    // Normalize the keycode
-    uint16_t base_kc = keycode & 0xFF;
+    // --- NEW: compute effective last alpha when invoking RMAGIC itself ---
+    if (keycode == RMAGIC) {
+        uint16_t last_alpha = last_alpha_after_backspaces();
+        if (last_alpha == KC_NO) return;  // nothing to do
 
-    // Special handling for M_QU
+        // normalize to table index
+        uint16_t base_kc = last_alpha & 0xFF;
+        const magic_entry_t* entry = &rmagic_table[base_kc];
+        if (!entry->base) return;
+
+        if (entry->needs_backspace) tap_code(KC_BSPC);
+        MAGIC_STRING_VAR(entry, KC_SPC);
+        return;
+    }
+    // --- END NEW ---
+
+    // Existing special-case for M_QU when RMAGIC is triggered by 'qu'
     if (keycode == M_QU) {
         const magic_entry_t* entry = get_magic_entry_for_qu(true);
-        tap_code(KC_BSPC);
-        tap_code(KC_BSPC);
+        tap_code(KC_BSPC); tap_code(KC_BSPC);
         MAGIC_STRING_VAR(entry, KC_SPC);
         return;
     }
 
-    // Look up in table
+    // Original path when RMAGIC is invoked *as a function of* a letter press
+    uint16_t base_kc = keycode & 0xFF;
     const magic_entry_t* entry = &rmagic_table[base_kc];
-    if (!entry->base) return;  // No mapping for this key
-
-    // Apply backspace if needed
-    if (entry->needs_backspace) {
-        tap_code(KC_BSPC);
-    }
-
-    // Send the magic string
+    if (!entry->base) return;
+    if (entry->needs_backspace) tap_code(KC_BSPC);
     MAGIC_STRING_VAR(entry, KC_SPC);
 }
 
+
 static void process_left_magic(uint16_t keycode, uint8_t mods) {
-    last_magic_state.entry = NULL;  // Reset last magic state
+    last_magic_state.entry = NULL;
 
-    // Normalize the keycode
-    uint16_t base_kc = keycode & 0xFF;
+    // --- NEW: compute effective last alpha when invoking LMAGIC itself ---
+    if (keycode == LMAGIC) {
+        uint16_t last_alpha = last_alpha_after_backspaces();
+        if (last_alpha == KC_NO) return;
 
-    // Special handling for M_QU
+        uint16_t base_kc = last_alpha & 0xFF;
+        const magic_entry_t* entry = &lmagic_table[base_kc];
+        if (!entry->base) return;
+
+        if (entry->needs_backspace) tap_code(KC_BSPC);
+        uint16_t repeat_kc = (base_kc == KC_P || base_kc == KC_Y || base_kc == KC_Z) ? KC_NO : KC_SPC;
+        MAGIC_STRING_VAR(entry, repeat_kc);
+        return;
+    }
+    // --- END NEW ---
+
     if (keycode == M_QU) {
         const magic_entry_t* entry = get_magic_entry_for_qu(false);
-        tap_code(KC_BSPC);
-        tap_code(KC_BSPC);
+        tap_code(KC_BSPC); tap_code(KC_BSPC);
         MAGIC_STRING_VAR(entry, KC_SPC);
         return;
     }
 
-    // Look up in table
+    uint16_t base_kc = keycode & 0xFF;
     const magic_entry_t* entry = &lmagic_table[base_kc];
-    if (!entry->base) return;  // No mapping for this key
-
-    // Apply backspace if needed
-    if (entry->needs_backspace) {
-        tap_code(KC_BSPC);
-    }
-
-    // Send the magic string - note P and Y,Z don't add space
+    if (!entry->base) return;
+    if (entry->needs_backspace) tap_code(KC_BSPC);
     uint16_t repeat_kc = (base_kc == KC_P || base_kc == KC_Y || base_kc == KC_Z) ? KC_NO : KC_SPC;
     MAGIC_STRING_VAR(entry, repeat_kc);
 }
+
 
 bool caps_word_press_user(uint16_t keycode) {
   switch (keycode) {
@@ -813,28 +901,45 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
 
   if (keycode == QUOP) {
     if (record->event.pressed) {
-      if (within_word) {
-        tap_code(KC_QUOT);
-      } else {
-        SEND_STRING("\"\"" SS_TAP(X_LEFT));
-      }
+        if (within_word) {
+            // If we just typed a lone 'i' at a word boundary, upgrade it to 'I'
+            uint16_t last   = get_prev_keycode(1); // key before QUOP
+            uint16_t before = get_prev_keycode(2); // key before that
+
+            if (last == KC_I && is_word_boundary_key(before)) {
+                tap_code(KC_BSPC);           // delete the 'i'
+                tap_code16(S(KC_I));         // insert 'I'
+            }
+
+            // Emit the apostrophe used for contractions
+            tap_code(KC_QUOT);
+
+            // Keep pipeline active as before
+            return true;
+        } else {
+            // Your existing “smart quotes” behavior when not in a word
+            SEND_STRING("\"\"" SS_TAP(X_LEFT));
+            return false;
+        }
     }
-    return false;
-  }
+    return false; // release
+
+}
+
 
   switch (keycode) {  // Unpack tapping keycode for tap-hold keys.
-#ifndef NO_ACTION_TAPPING
-    case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-      if (record->tap.count == 0) { return true; }
-      keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
-      break;
-#ifndef NO_ACTION_LAYER
-    case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
-      if (record->tap.count == 0) { return true; }
-      keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
-      break;
-#endif  // NO_ACTION_LAYER
-#endif  // NO_ACTION_TAPPING
+    #ifndef NO_ACTION_TAPPING
+        case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+        if (record->tap.count == 0) { return true; }
+        keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
+        break;
+    #ifndef NO_ACTION_LAYER
+        case QK_LAYER_TAP ... QK_LAYER_TAP_MAX:
+        if (record->tap.count == 0) { return true; }
+        keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
+        break;
+    #endif  // NO_ACTION_LAYER
+    #endif  // NO_ACTION_TAPPING
   }
 
   // Determine whether the key is a letter.
@@ -851,7 +956,6 @@ static bool process_quopostrokey(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-
 // Unwrap QK_MOD_TAP / QK_LAYER_TAP to their tap keycode if this press is a tap.
 static inline uint16_t unwrap_tap_keycode(uint16_t kc, const keyrecord_t *record) {
 #ifndef NO_ACTION_TAPPING
@@ -865,6 +969,24 @@ static inline uint16_t unwrap_tap_keycode(uint16_t kc, const keyrecord_t *record
 #endif
 #endif
     return kc;
+}
+
+static bool process_i_autocap_on_space(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+
+    // Respect tap-hold space
+    uint16_t kc = unwrap_tap_keycode(keycode, record);
+    if (kc != KC_SPC) return true;
+
+    // If we just typed a lone 'i' at a boundary, upgrade to 'I' before the space goes out
+    uint16_t last   = get_prev_keycode(1);
+    uint16_t before = get_prev_keycode(2);
+    if (last == KC_I && is_word_boundary_key(before)) {
+        tap_code(KC_BSPC);
+        tap_code16(S(KC_I));
+        // Let the original space continue to be sent by the caller
+    }
+    return true;
 }
 
 // Ignore contexts where adaptives would be dangerous/noisy.
@@ -1084,9 +1206,12 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
             tap_code16(KC_EXLM);
             if (!after_number) {
                 tap_code(KC_SPC);
+                // Example (ALT path) — do this in all three similar branches
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
+                smart_punc_oss_active = true;
                 last_key_added_space = true;
-                set_last_keycode(KC_SPC);  // Set to space since we added one
+                set_last_keycode(KC_SPC);
+
             } else {
                 set_last_keycode(KC_EXLM);  // Set to exclamation if no space
             }
@@ -1094,6 +1219,7 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
             tap_code16(KC_QUES);
             if (!after_number) {
                 tap_code(KC_SPC);
+                smart_punc_oss_active = true;
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 last_key_added_space = true;
                 set_last_keycode(KC_SPC);  // Set to space since we added one
@@ -1105,6 +1231,7 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
             if (!after_number) {
                 tap_code(KC_SPC);
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
+                smart_punc_oss_active = true;
                 last_key_added_space = true;
                 set_last_keycode(KC_SPC);  // Set to space since we added one
             } else {
@@ -1117,11 +1244,45 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
     }
 }
 
+// Run this early in the chain. Never consumes the key (always returns true).
+static bool process_smart_punc_oss_guard(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+    if (!smart_punc_oss_active)  return true;
+
+    // View with current mods + oneshot mods, and unwrap tap-holds/shifted
+    uint8_t mods_view = get_mods() | get_oneshot_mods();
+    uint16_t norm = normalize_keycode(keycode, record, mods_view);
+
+    // If this press is a hold (KC_NO) or a non-alpha tap, clear the OSS now.
+    // If it's an alpha (A–Z), let QMK consume the OSS on this key.
+    if (norm == KC_NO) {
+        clear_oneshot_mods();
+        smart_punc_oss_active = false;
+        return true;
+    }
+
+    if (is_alpha_keycode(norm)) {
+        // Allow OSS to apply once, then forget our flag.
+        smart_punc_oss_active = false;
+        return true;
+    }
+
+    // Non-alpha: strip the smart-punc OSS before anything else runs.
+    clear_oneshot_mods();
+    smart_punc_oss_active = false;
+    return true;
+}
+
+
 // Updated smart comma handler with shift = slash
 static bool process_smart_comma(uint16_t keycode, keyrecord_t* record) {
     if (keycode != SMART_COMMA) return true;
 
     if (record->event.pressed) {
+        if (last_key_added_space) {
+            tap_code(KC_BSPC);
+            last_key_added_space = false;
+        }
         uint8_t mods = get_mods() | get_oneshot_mods();
         bool shifted = mods & MOD_MASK_SHIFT;
 
@@ -1388,11 +1549,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
 
     // 3. Chain of responsibility - each returns false if fully handled
     // Order matters! Earlier handlers can prevent later ones from running
+    if (!process_smart_punc_oss_guard(keycode, record)) return false;
     if (!process_smart_punctuation(keycode, record)) return false;
     if (!process_smart_comma(keycode, record)) return false;
 
     // Quopostrokey needs to run early to track word boundaries
     if (!process_quopostrokey(keycode, record)) return false;
+    if (!process_i_autocap_on_space(keycode, record)) return false;
 
     // Special repeat cases before other processing
     if (!process_repeat_special_cases(keycode, record)) return false;
