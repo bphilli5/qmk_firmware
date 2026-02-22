@@ -282,11 +282,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 9 - GAME layer
     [_GAME] = LAYOUT_num(
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,  KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(0),
-        KC_T,     KC_LCTL,    KC_Q,       KC_W,       KC_E,     KC_R,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
+        KC_TRNS,  KC_BTN3,    KC_M,    KC_TRNS,    KC_TRNS,  KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(0),
+        KC_T,     KC_TAB,    KC_Q,       KC_W,       KC_E,     KC_R,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_G,     KC_LSFT,    KC_A,       KC_S,       KC_D,     KC_F,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
-        KC_B,     KC_TAB,     KC_Z,       KC_X,       KC_C,     KC_V,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_B,     KC_LCTL,     KC_Z,       KC_X,       KC_C,     KC_V,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
+                              KC_TRNS,    KC_TRNS,    KC_LSFT,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       KC_LSFT,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
     )
 };
@@ -410,6 +410,7 @@ static inline bool is_word_boundary_key(uint16_t kc) {
         case KC_GRV:
         case KC_QUOT:
         case QUOP:
+        case SMART_COMMA:
             return true;
         default:
             return false;
@@ -653,6 +654,23 @@ static const magic_entry_t lmagic_table[256] = {
     [KC_COMM] = {false, "but ", {NULL}, 0},
 };
 
+// LMAGIC digraph lookup - for two-letter sequences
+// Key format: (first_char << 8) | second_char
+// Example: "sh" = (KC_S << 8) | KC_H
+typedef struct {
+    uint16_t digraph_key;  // (first_letter << 8) | second_letter
+    magic_entry_t entry;
+} digraph_magic_entry_t;
+
+static const digraph_magic_entry_t lmagic_digraph_table[] = {
+    {(KC_S << 8) | KC_H, {true, "ould ", {"ouldn't ", "oulder ", NULL}, 2}},  // sh + LMAGIC = should
+    {(KC_T << 8) | KC_H, {true, "ink ", {"ought ", "inking ", "inks ", NULL}, 3}},  // th + LMAGIC = think
+    {(KC_C << 8) | KC_H, {true, "ange ", {"anges ", "anged ", "anging ", "ildren ", NULL}, 4}},  // ch + LMAGIC = change
+    {(KC_W << 8) | KC_H, {true, "ere ", {"ich ", "en ", NULL}, 2}},  // wh + LMAGIC = where
+    // Add more digraphs as needed
+    {0, {false, NULL, {NULL}, 0}}  // Terminator
+};
+
 // Special handling for M_QU keycode mappings
 static const magic_entry_t* get_magic_entry_for_qu(bool is_rmagic) {
     static const magic_entry_t rmagic_qu = {true, "question ", {"questions ", "questioned ", "questioning ", "questionable ", "questionnaire "}, 5};
@@ -714,8 +732,22 @@ static void cycle_last_magic(void) {
         ? last_magic_state.entry->base
         : last_magic_state.entry->variations[last_magic_state.current_variant - 1];
 
+    // Clear one-shot mods to prevent them from affecting the entire string
+    clear_oneshot_mods();
+
+    // Handle Caps Word properly - save and restore shift state
+    uint8_t saved_mods = 0;
+    if (is_caps_word_on()) {
+        saved_mods = get_mods();
+        register_mods(MOD_BIT(KC_LSFT));
+    }
+
     send_string(to_send);
     set_last_keycode(last_magic_state.repeat_keycode);
+
+    if (is_caps_word_on()) {
+        set_mods(saved_mods);
+    }
 }
 
 static inline bool is_alpha_key(uint16_t kc) {
@@ -802,6 +834,36 @@ static void process_left_magic(uint16_t keycode, uint8_t mods) {
         uint16_t last_alpha = last_alpha_after_backspaces();
         if (last_alpha == KC_NO) return;
 
+        // Check for digraph first (last two letters)
+        uint16_t prev_alpha = KC_NO;
+        for (uint8_t i = 1; i < key_history.count; i++) {
+            key_event_t *ev = get_key_history(i);
+            if (!ev || !ev->pressed) continue;
+            uint16_t kc = ev->keycode;
+            if (is_alpha_key(kc) && kc != last_alpha) {
+                prev_alpha = kc;
+                break;
+            }
+        }
+
+        // If we have two letters, check digraph table
+        if (prev_alpha != KC_NO) {
+            uint16_t digraph_key = (prev_alpha << 8) | last_alpha;
+            for (int i = 0; lmagic_digraph_table[i].digraph_key != 0; i++) {
+                if (lmagic_digraph_table[i].digraph_key == digraph_key) {
+                    // Found digraph match!
+                    const magic_entry_t* entry = &lmagic_digraph_table[i].entry;
+                    if (entry->needs_backspace) {
+                        tap_code(KC_BSPC);  // Delete second letter
+                        tap_code(KC_BSPC);  // Delete first letter
+                    }
+                    MAGIC_STRING_VAR(entry, KC_SPC);
+                    return;
+                }
+            }
+        }
+
+        // Fall back to single letter lookup
         uint16_t base_kc = last_alpha & 0xFF;
         const magic_entry_t* entry = &lmagic_table[base_kc];
         if (!entry->base) return;
@@ -1252,6 +1314,19 @@ static bool process_smart_punc_oss_guard(uint16_t keycode, keyrecord_t* record) 
     // View with current mods + oneshot mods, and unwrap tap-holds/shifted
     uint8_t mods_view = get_mods() | get_oneshot_mods();
     uint16_t norm = normalize_keycode(keycode, record, mods_view);
+
+    // Check for mouse buttons - clear OSS before the click
+    switch (keycode) {
+        case KC_BTN1:
+        case KC_BTN2:
+        case KC_BTN3:
+        case KC_BTN4:
+        case KC_BTN5:
+        case HRM_MOUSE:  // Your layer-tap mouse button
+            clear_oneshot_mods();
+            smart_punc_oss_active = false;
+            return true;
+    }
 
     // If this press is a hold (KC_NO) or a non-alpha tap, clear the OSS now.
     // If it's an alpha (A–Z), let QMK consume the OSS on this key.
