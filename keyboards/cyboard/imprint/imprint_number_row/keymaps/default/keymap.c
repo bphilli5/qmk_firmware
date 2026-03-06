@@ -1221,15 +1221,83 @@ static inline bool will_emit_punctuation(uint16_t keycode, const keyrecord_t* re
 static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
     static uint16_t smart_punctuation_timer;
     static bool should_delete_space;
+    static bool alt_handled_on_press;
+    static bool alt_after_number;
 
     if (keycode != SMART_PUNC) return true;
 
     if (record->event.pressed) {
-        smart_punctuation_timer = timer_read();
+        uint8_t mods = get_mods() | get_oneshot_mods();
         should_delete_space = last_key_added_space;
+        alt_handled_on_press = false;
+
+        if (mods & MOD_MASK_ALT) {
+            // Handle Alt on press, not release, to fix two bugs:
+            // 1. Race: user may release HRM key before SMART_PUNC, causing a standalone
+            //    Alt-up HID report (which triggers the Windows menu bar) and get_mods()
+            //    returning 0 in the release handler.
+            // 2. The should_delete_space backspace would fire with Alt held (= Alt+Bspc = Undo).
+            //
+            // Windows Alt-menu rule: menu activates on Alt-up if no other key was pressed
+            // while Alt was held. Fix: press Shift *while Alt is still held* (sends {Alt,Shift}
+            // HID report → WM_SYSKEYDOWN(VK_SHIFT)), then silently drop Alt with del_mods.
+            // When Alt-up finally fires, Windows sees the previous message was VK_SHIFT → no menu.
+            alt_handled_on_press = true;
+
+            key_event_t* prev_event = get_key_history(1);
+            uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
+            alt_after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+
+            clear_oneshot_mods();
+
+            // Press Shift while Alt is still held → sends {Alt, Shift}.
+            register_mods(MOD_BIT(KC_LSFT));
+
+            if (should_delete_space) {
+                // Need a plain backspace. Release all mods atomically:
+                // {Alt, Shift} → {} (Alt and Shift both gone in one report).
+                // WM_SYSKEYUP(VK_MENU): previous message was VK_SHIFT → no menu. ✓
+                set_mods(0);
+                send_keyboard_report();
+                tap_code(KC_BSPC);
+                should_delete_space = false;
+                register_mods(MOD_BIT(KC_LSFT));  // restore Shift for the ! below
+            } else {
+                // Drop Alt silently — no standalone Alt-up report.
+                del_mods(MOD_MASK_ALT);
+            }
+
+            // real_mods = {LSFT}, no Alt. Type !
+            register_code(KC_1);        // sends {Shift, 1}
+            unregister_code(KC_1);      // sends {Shift}
+
+            // Restore original mods minus Alt (handles the Alt+Shift held case too).
+            set_mods(mods & ~MOD_MASK_ALT);
+            send_keyboard_report();
+
+            // Space + OSS deferred to release so tap vs hold distinction is preserved.
+        }
+
+        smart_punctuation_timer = timer_read();
         return false;
     } else {
-        // On release, check if we should delete the trailing space
+        // Release handler.
+        if (alt_handled_on_press) {
+            alt_handled_on_press = false;
+            bool was_tap = timer_elapsed(smart_punctuation_timer) < TAPPING_TERM;
+            if (was_tap && !alt_after_number) {
+                tap_code(KC_SPC);
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
+                smart_punc_oss_active = true;
+                last_key_added_space = true;
+                set_last_keycode(KC_SPC);
+            } else {
+                set_last_keycode(KC_EXLM);
+            }
+            return false;
+        }
+
+        // Non-Alt release handling (original behavior).
         if (should_delete_space) {
             tap_code(KC_BSPC);
             should_delete_space = false;
@@ -1238,24 +1306,20 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
         bool was_tap = timer_elapsed(smart_punctuation_timer) < TAPPING_TERM;
 
         if (!was_tap) {
-            // HOLD: Just send plain punctuation based on mods, no space/shift
+            // HOLD: plain punctuation based on mods, no space/shift
             uint8_t mods = get_mods() | get_oneshot_mods();
             clear_oneshot_mods();
-
-            if (mods & MOD_MASK_ALT) {
-                tap_code16(KC_EXLM);
-                set_last_keycode(KC_EXLM);  // Set last keycode
-            } else if (mods & MOD_MASK_SHIFT) {
+            if (mods & MOD_MASK_SHIFT) {
                 tap_code16(KC_QUES);
-                set_last_keycode(KC_QUES);  // Set last keycode
+                set_last_keycode(KC_QUES);
             } else {
                 tap_code(KC_DOT);
-                set_last_keycode(KC_DOT);   // Set last keycode
+                set_last_keycode(KC_DOT);
             }
             return false;
         }
 
-        // TAP: Smart behavior
+        // TAP: smart behavior (Shift and default; Alt handled in press handler above)
         uint8_t mods = get_mods() | get_oneshot_mods();
         key_event_t* prev_event = get_key_history(1);
         uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
@@ -1264,29 +1328,16 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
         clear_oneshot_mods();
         clear_mods();
 
-        if (mods & MOD_MASK_ALT) {
-            tap_code16(KC_EXLM);
-            if (!after_number) {
-                tap_code(KC_SPC);
-                // Example (ALT path) — do this in all three similar branches
-                add_oneshot_mods(MOD_BIT(KC_LSFT));
-                smart_punc_oss_active = true;
-                last_key_added_space = true;
-                set_last_keycode(KC_SPC);
-
-            } else {
-                set_last_keycode(KC_EXLM);  // Set to exclamation if no space
-            }
-        } else if (mods & MOD_MASK_SHIFT) {
+        if (mods & MOD_MASK_SHIFT) {
             tap_code16(KC_QUES);
             if (!after_number) {
                 tap_code(KC_SPC);
                 smart_punc_oss_active = true;
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 last_key_added_space = true;
-                set_last_keycode(KC_SPC);  // Set to space since we added one
+                set_last_keycode(KC_SPC);
             } else {
-                set_last_keycode(KC_QUES);  // Set to question if no space
+                set_last_keycode(KC_QUES);
             }
         } else {
             tap_code(KC_DOT);
@@ -1295,13 +1346,13 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
                 add_oneshot_mods(MOD_BIT(KC_LSFT));
                 smart_punc_oss_active = true;
                 last_key_added_space = true;
-                set_last_keycode(KC_SPC);  // Set to space since we added one
+                set_last_keycode(KC_SPC);
             } else {
-                set_last_keycode(KC_DOT);   // Set to dot if no space
+                set_last_keycode(KC_DOT);
             }
         }
 
-        set_mods(mods);
+        set_mods(mods);  // restore original mods (no Alt here; alt path handled above)
         return false;
     }
 }
@@ -1539,19 +1590,34 @@ static bool process_special_macros(uint16_t keycode, keyrecord_t* record) {
             if (record->event.pressed) {
                 uint8_t active_mods = get_mods() | get_oneshot_mods();
                 clear_oneshot_mods();
-                unregister_mods(MOD_MASK_CSAG);
 
-                if (active_mods & MOD_MASK_SHIFT) {
+                if (active_mods & MOD_MASK_ALT) {
+                    // Same trick as SMART_PUNC: press Shift while Alt is still held
+                    // ({Alt,Shift} report → WM_SYSKEYDOWN(VK_SHIFT)), then drop Alt
+                    // silently before the key. Windows sees VK_SHIFT between Alt-down
+                    // and Alt-up → no menu activation.
+                    register_mods(MOD_BIT(KC_LSFT));  // sends {Alt, Shift}
+                    del_mods(MOD_MASK_ALT);            // silent
+                    register_code(KC_COMMA);           // {Shift, ,} = <
+                    unregister_code(KC_COMMA);         // {Shift}
+                    register_code(KC_DOT);             // {Shift, .} = >
+                    unregister_code(KC_DOT);           // {Shift}
+                    set_mods(active_mods & ~MOD_MASK_ALT);
+                    send_keyboard_report();
+                } else if (active_mods & MOD_MASK_SHIFT) {
+                    del_mods(MOD_MASK_CSAG);
                     SEND_STRING("[]");
+                    register_mods(active_mods & ~MOD_MASK_ALT);
                 } else if (active_mods & MOD_MASK_CTRL) {
+                    del_mods(MOD_MASK_CSAG);
                     SEND_STRING("{}");
-                } else if (active_mods & MOD_MASK_ALT) {
-                    SEND_STRING("<>");
+                    register_mods(active_mods & ~MOD_MASK_ALT);
                 } else {
+                    del_mods(MOD_MASK_CSAG);
                     SEND_STRING("()");
+                    register_mods(active_mods & ~MOD_MASK_ALT);
                 }
                 tap_code(KC_LEFT);
-                register_mods(active_mods);
             }
             return false;  // Fully handled
 
