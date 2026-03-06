@@ -1739,6 +1739,13 @@ static bool process_adaptive_keys(uint16_t keycode, keyrecord_t* record) {
 static void update_key_state(uint16_t keycode, keyrecord_t* record) {
     if (!record->event.pressed) return;
 
+    // Don't reset space tracking for held modifier keys (HRM hold → KC_NO from normalize)
+    uint16_t norm = normalize_keycode(keycode, record, get_mods());
+    if (norm == KC_NO) {
+        uprintf("Key pressed (hold, skipping space reset): %u\n", keycode);
+        return;
+    }
+
     // Update space tracking
     last_key_added_space = is_space_adding_key(keycode);
 
