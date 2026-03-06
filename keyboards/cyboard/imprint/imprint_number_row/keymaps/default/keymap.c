@@ -132,6 +132,9 @@ static bool process_jiggler(uint16_t keycode, keyrecord_t* record);
 // Adaptive term for quick typing
 #define ADAPTIVE_TERM_MS 250  // Only trigger if typed quickly (250ms)
 
+// Magic roll term - window for rolling through variations
+#define MAGIC_ROLL_TERM 150  // ms - tight window for roll detection
+
 // Define the HSV values for the LED colors
 // Function to set LED colors based on state
 void set_led_colors(enum led_states led_state) {
@@ -586,7 +589,9 @@ static struct {
     uint8_t current_variant;
     uint16_t base_length;
     uint16_t repeat_keycode;
-} last_magic_state = {NULL, 0, 0, KC_NO};
+    uint16_t last_roll_time;     // Timestamp of last cycle (for roll detection)
+    uint16_t last_roll_keycode;  // Which key triggered last cycle
+} last_magic_state = {NULL, 0, 0, KC_NO, 0, KC_NO};
 
 // 4. REPLACE all your word_* definitions with these lookup tables:
 
@@ -748,6 +753,55 @@ static void cycle_last_magic(void) {
     if (is_caps_word_on()) {
         set_mods(saved_mods);
     }
+}
+
+// ============================================================================
+// MAGIC ROLL - Cycle variations by rolling REP → QUOP → SMART_PUNC → SMART_COMMA
+// ============================================================================
+static bool process_magic_roll(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+
+    // Only log for our candidate keys to avoid spam
+    bool is_roll_candidate = (keycode == QUOP || keycode == SMART_PUNC || keycode == SMART_COMMA);
+    if (!is_roll_candidate) return true;
+
+    uint16_t elapsed = timer_elapsed(last_magic_state.last_roll_time);
+    uprintf("ROLL? kc=%u entry=%u var_count=%u elapsed=%u prev_kc=%u\n",
+            keycode,
+            (last_magic_state.entry != NULL),
+            (last_magic_state.entry ? last_magic_state.entry->var_count : 0),
+            elapsed,
+            last_magic_state.last_roll_keycode);
+
+    if (!last_magic_state.entry) return true;  // No active magic state
+    if (last_magic_state.entry->var_count == 0) return true;  // No variations
+
+    // Too slow = not a roll, let key do normal thing
+    if (elapsed > MAGIC_ROLL_TERM) {
+        uprintf("ROLL: too slow (%u > %u)\n", elapsed, MAGIC_ROLL_TERM);
+        return true;
+    }
+
+    // Check valid roll sequence: REP → QUOP → SMART_PUNC → SMART_COMMA
+    uint16_t prev = last_magic_state.last_roll_keycode;
+    bool valid_roll = false;
+
+    switch (keycode) {
+        case QUOP:        valid_roll = (prev == QK_REP);      break;
+        case SMART_PUNC:  valid_roll = (prev == QUOP);        break;
+        case SMART_COMMA: valid_roll = (prev == SMART_PUNC);  break;
+    }
+
+    uprintf("ROLL: valid=%u (kc=%u, prev=%u, QK_REP=%u)\n", valid_roll, keycode, prev, QK_REP);
+
+    if (valid_roll) {
+        cycle_last_magic();
+        last_magic_state.last_roll_time = timer_read();
+        last_magic_state.last_roll_keycode = keycode;
+        return false;  // Consumed - don't do normal key behavior
+    }
+
+    return true;  // Not a valid roll, normal processing
 }
 
 static inline bool is_alpha_key(uint16_t kc) {
@@ -925,34 +979,29 @@ static bool process_qu_macro(uint16_t keycode, keyrecord_t* record) {
 
     if (record->event.pressed) {
         q_timer = timer_read();
-    } else {
-        if (timer_elapsed(q_timer) < TAPPING_TERM) {
-            uint8_t mods = get_mods();
-            bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
-            bool caps_word = is_caps_word_on();
+        uint8_t mods = get_mods();
+        bool shift = mods & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
+        bool caps_word = is_caps_word_on();
 
-            if (caps_word) {
-                // Caps Word: QU (both capitals)
-                tap_code16(S(KC_Q));
-                tap_code16(S(KC_U));
-            } else if (shift) {
-                // Shift only: Qu (only Q capitalized)
-                del_mods(MOD_MASK_SHIFT);
-                tap_code16(S(KC_Q));
-                tap_code(KC_U);
-                set_mods(mods);
-            } else {
-                // Normal: qu (both lowercase)
-                tap_code(KC_Q);
-                tap_code(KC_U);
-            }
+        // Output "qu" immediately on press so LMAGIC sees KC_U as last keycode
+        if (caps_word) {
+            tap_code16(S(KC_Q));
+            tap_code16(S(KC_U));
+        } else if (shift) {
+            del_mods(MOD_MASK_SHIFT);
+            tap_code16(S(KC_Q));
+            tap_code(KC_U);
+            set_mods(mods);
         } else {
-            // For hold behavior
-            if (is_caps_word_on()) {
-                tap_code16(S(KC_Q));
-            } else {
-                tap_code(KC_Q);
-            }
+            tap_code(KC_Q);
+            tap_code(KC_U);
+        }
+    } else {
+        // On release: if it was a hold, backspace the 'u' to leave just 'q'
+        uint16_t elapsed = timer_elapsed(q_timer);
+        uprintf("M_QU release: elapsed=%u tapping_term=%u is_hold=%u\n", elapsed, TAPPING_TERM, elapsed >= TAPPING_TERM);
+        if (elapsed >= TAPPING_TERM) {
+            tap_code(KC_BSPC);
         }
     }
     return false;
@@ -1510,6 +1559,10 @@ static bool process_repeat_special_cases(uint16_t keycode, keyrecord_t* record) 
         if (last_magic_state.entry && record->event.pressed) {
             uprintf("Cycling magic word instead of repeating space\n");
             cycle_last_magic();
+            // Start roll chain so QUOP/SMART_PUNC/SMART_COMMA can continue cycling
+            last_magic_state.last_roll_time = timer_read();
+            last_magic_state.last_roll_keycode = QK_REP;
+            uprintf("ROLL chain started: time=%u\n", last_magic_state.last_roll_time);
             return false;  // Fully handled
         }
     }
@@ -1565,6 +1618,9 @@ static bool process_magic_keys(uint16_t keycode, keyrecord_t* record) {
             if (last_magic_state.entry) {
                 uprintf("REP: word exists, variant=%d\n", last_magic_state.current_variant);
                 cycle_last_magic();
+                // Start roll chain - next key in sequence can continue cycling
+                last_magic_state.last_roll_time = timer_read();
+                last_magic_state.last_roll_keycode = QK_REP;
                 return false;  // Fully handled
             } else {
                 uprintf("REP: no word stored\n");
@@ -1690,6 +1746,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
 
     // 3. Chain of responsibility - each returns false if fully handled
     // Order matters! Earlier handlers can prevent later ones from running
+
+    // Magic roll must be first - intercepts QUOP/SMART_PUNC/SMART_COMMA during roll
+    if (!process_magic_roll(keycode, record)) return false;
+
     if (!process_smart_punc_oss_guard(keycode, record)) return false;
     if (!process_smart_punctuation(keycode, record)) return false;
     if (!process_smart_comma(keycode, record)) return false;

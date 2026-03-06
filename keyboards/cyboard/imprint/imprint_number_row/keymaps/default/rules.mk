@@ -11,6 +11,7 @@ REPEAT_KEY_ENABLE = yes
 AUTOCORRECT_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
 MOUSEKEY_ENABLE = yes
+CONSOLE_ENABLE = yes
 
 # For combo definitions (uses introspection)
 ifeq ($(strip $(COMBO_ENABLE)), yes)
