@@ -1560,6 +1560,21 @@ static bool process_repeat_special_cases(uint16_t keycode, keyrecord_t* record) 
                           QK_MODS_GET_BASIC_KEYCODE(replacement) :
                           replacement;
         set_last_keycode(base_kc);
+
+        // Resync autocorrect buffer: process_autocorrect already added the ghost
+        // replayed key (last_kc) to its buffer before process_record_user ran.
+        // tap_code() bypasses process_record so autocorrect never sees the
+        // replacement. Fix: backspace the ghost out and inject the real key.
+#ifdef AUTOCORRECT_ENABLE
+        {
+            keyrecord_t dummy = {.event = {.pressed = true}};
+            process_autocorrect(KC_BSPC, &dummy);  // remove ghost last_kc
+            if (base_kc >= KC_A && base_kc <= KC_Z) {
+                process_autocorrect(base_kc, &dummy);  // add actual replacement
+            }
+        }
+#endif
+
         return false;  // Fully handled
     }
 
