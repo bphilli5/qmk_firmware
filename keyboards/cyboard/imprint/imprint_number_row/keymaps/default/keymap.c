@@ -690,7 +690,8 @@ static const magic_entry_t* get_magic_entry_for_qu(bool is_rmagic) {
 static void magic_send_string_entry(const magic_entry_t* entry, uint16_t repeat_keycode) {
     if (!entry || !entry->base) return;
 
-    uprintf("MAGIC_STRING_VAR: word=%s\n", entry->base);
+    uprintf("MAGIC_STRING_VAR: word=%s caps_word=%u mods=%02X oss=%02X weak=%02X\n",
+            entry->base, is_caps_word_on(), get_mods(), get_oneshot_mods(), get_weak_mods());
 
     last_magic_state.entry = entry;
     last_magic_state.current_variant = 0;
@@ -706,6 +707,7 @@ static void magic_send_string_entry(const magic_entry_t* entry, uint16_t repeat_
 
     send_string_with_delay(entry->base, TAP_CODE_DELAY);
     set_last_keycode(repeat_keycode);
+    set_last_mods(0);  // Clear mods so QK_REP doesn't re-apply shift as weak mods
 
     if (is_caps_word_on()) {
         set_mods(saved_mods);
@@ -715,6 +717,14 @@ static void magic_send_string_entry(const magic_entry_t* entry, uint16_t repeat_
 // 6. REPLACE your cycle_last_magic function with:
 static void cycle_last_magic(void) {
     if (!last_magic_state.entry) return;
+
+    // DEBUG: capture all mod state at entry
+    uprintf("CYCLE_MAGIC entry: caps_word=%u mods=%02X oss=%02X weak=%02X last_mods=%02X\n",
+            is_caps_word_on(),
+            get_mods(),
+            get_oneshot_mods(),
+            get_weak_mods(),
+            get_last_mods());
 
     // Calculate how many backspaces needed
     uint16_t current_length = (last_magic_state.current_variant == 0)
@@ -737,14 +747,26 @@ static void cycle_last_magic(void) {
         ? last_magic_state.entry->base
         : last_magic_state.entry->variations[last_magic_state.current_variant - 1];
 
-    // Clear one-shot mods to prevent them from affecting the entire string
+    // Clear one-shot and weak mods to prevent shift from affecting the entire string
+    // (QK_REP re-applies last_mods as weak mods, which includes shift if a capital
+    // letter was typed before magic fired)
     clear_oneshot_mods();
+    clear_weak_mods();
+
+    // DEBUG: mod state after clearing mods, before send_string
+    uprintf("CYCLE_MAGIC pre-send: caps_word=%u mods=%02X oss=%02X weak=%02X str=\"%s\"\n",
+            is_caps_word_on(),
+            get_mods(),
+            get_oneshot_mods(),
+            get_weak_mods(),
+            to_send);
 
     // Handle Caps Word properly - save and restore shift state
     uint8_t saved_mods = 0;
     if (is_caps_word_on()) {
         saved_mods = get_mods();
         register_mods(MOD_BIT(KC_LSFT));
+        uprintf("CYCLE_MAGIC caps_word active: registering shift, saved_mods=%02X\n", saved_mods);
     }
 
     send_string(to_send);
@@ -753,6 +775,9 @@ static void cycle_last_magic(void) {
     if (is_caps_word_on()) {
         set_mods(saved_mods);
     }
+
+    uprintf("CYCLE_MAGIC done: post-send mods=%02X oss=%02X\n",
+            get_mods(), get_oneshot_mods());
 }
 
 // ============================================================================
