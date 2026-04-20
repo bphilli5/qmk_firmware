@@ -1,0 +1,4 @@
+#pragma once
+
+#define SPLIT_DETECTED_OS_ENABLE
+#define OS_DETECTION_SINGLE_REPORT

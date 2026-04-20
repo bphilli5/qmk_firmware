@@ -25,6 +25,7 @@
 #include "process_key_override.h"  // <- Required for key_override_t
 #include "print.h"  // <- Required for debug_print
 #include "deferred_exec.h"
+#include "os_detection.h"
 
 #define COMBO_COUNT 8  // Adjust this number based on how many combos you define
 
@@ -89,6 +90,21 @@ enum custom_keycodes {
 
     JIGGLER,
 
+    // OS-aware shortcuts (Mac/Windows)
+    OS_COPY,    // Ctrl+C (Win) / Cmd+C (Mac)
+    OS_CUT,     // Ctrl+X (Win) / Cmd+X (Mac)
+    OS_PASTE,   // Ctrl+V (Win) / Cmd+V (Mac)
+    OS_UNDO,    // Ctrl+Z (Win) / Cmd+Z (Mac)
+    OS_SELALL,  // Ctrl+A (Win) / Cmd+A (Mac)
+    OS_FIND,    // Ctrl+F (Win) / Cmd+F (Mac)
+    OS_LOCK,    // Win+L (Win) / Ctrl+Cmd+Q (Mac)
+    OS_APPSW,   // Alt+Tab (Win) / Cmd+Tab (Mac)
+    OS_TSKVW,   // Win+Tab / Task View (Win) / Ctrl+Up / Mission Control (Mac)
+    OS_HOME,    // Home (Win) / Cmd+Left (Mac)
+    OS_END,     // End (Win) / Cmd+Right (Mac)
+    OS_WINSW,   // Win+Shift+Right (Win) / Ctrl+Cmd+Right / Rectangle Next Display (Mac)
+    MAC_TOG,    // Manual Mac/Win mode toggle
+
 };
 
 /// ============================================================================
@@ -97,6 +113,15 @@ enum custom_keycodes {
 static deferred_token jiggler_token = INVALID_DEFERRED_TOKEN;
 static report_mouse_t jiggler_report = {0};
 static bool jiggler_active = false;
+
+// OS detection state
+bool is_mac = false;
+
+bool process_detected_host_os_user(os_variant_t detected_os) {
+    is_mac = (detected_os == OS_MACOS || detected_os == OS_IOS);
+    uprintf("OS detected: %s\n", is_mac ? "Mac" : "Windows/Other");
+    return true;
+}
 
 // Forward declaration of jiggler function
 static bool process_jiggler(uint16_t keycode, keyrecord_t* record);
@@ -122,12 +147,11 @@ static bool process_jiggler(uint16_t keycode, keyrecord_t* record);
 // Left Non Home Row Modifiers
 #define HRM_BSPC LT(_FUNC, KC_BSPC) // Modifier for BSPC
 #define HRM_DEL LT(_FUNC, KC_DEL) // Modifier for DELs
-#define HRM_MOUSE LT(_MOUSE, KC_BTN1) // Modifier for Mouse Button 1
+#define HRM_MOUSE LT(_MOUSE, MS_BTN1) // Modifier for Mouse Button 1
 
 // Command shorthands
 #define OS_LSFT OSM(MOD_LSFT) // OS modifier for Left Shift
 #define OS_RSFT OSM(MOD_RSFT) // OS modifier for Right Shift
-#define WINSWITCH LGUI(LSFT(KC_RGHT)) // Windows Switch command
 
 // Adaptive term for quick typing
 #define ADAPTIVE_TERM_MS 250  // Only trigger if typed quickly (250ms)
@@ -196,12 +220,12 @@ void set_led_colors(enum led_states led_state) {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0 - Base layer
     [_BASE] = LAYOUT_num(
-        RGB_TOG,  C(KC_X),  C(KC_V),    C(KC_C),    C(KC_A), C(KC_Z),                 KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
+        RM_TOGG,  OS_CUT,   OS_PASTE,   OS_COPY,    OS_SELALL, OS_UNDO,               KC_CALC,  KC_WSCH,    KC_WBAK,    KC_WFWD,    KC_WREF,    TO(_GAME),
         KC_TAB,   KC_F,     KC_P,       KC_D,       KC_L,    M_QU,                    KC_MINS,  KC_U,       KC_O,       KC_Y,       KC_B,       KC_BSLS,
         KC_Z,     HRM_S,    HRM_N,      HRM_T,      HRM_H,   KC_K,                    KC_SCLN,  HRM_A,      HRM_E,      HRM_I,      HRM_C,      KC_X,
         OS_LSFT,  KC_V,     KC_W,       KC_G,       HRM_M,   KC_J,                    BRACES,   QK_REP,     QUOP,       SMART_PUNC, SMART_COMMA,OS_RSFT,
-                            A(KC_TAB),  G(KC_TAB),  HRM_R,   KC_ENT, KC_ESC, KC_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
-                                                    LMAGIC,  KC_NO,  KC_ENT, KC_BTN2, KC_NO,    RMAGIC
+                            OS_APPSW,   OS_TSKVW,   HRM_R,   KC_ENT, KC_ESC, MS_BTN1, HRM_BSPC, HRM_SPC,    KC_WBAK,    KC_WFWD,
+                                                    LMAGIC,  KC_NO,  KC_ENT, MS_BTN2, KC_NO,    RMAGIC
     ),
 
     // Layer 1 - Symbols
@@ -217,7 +241,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 2 - Navigation
     [_NAV] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGUP,  KC_HOME,    KC_UP,      KC_END,     LCTL(KC_F), KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGUP,  OS_HOME,    KC_UP,      OS_END,     OS_FIND,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_PGDN,  KC_LEFT,    KC_DOWN,    KC_RGHT,    KC_DEL,     KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_PGUP,    KC_PGDN,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
@@ -238,8 +262,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_FUNC] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_F10,     KC_F11,     KC_F12,     KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(_BASE),
         KC_TRNS,  KC_TRNS,    KC_F7,      KC_F8,      KC_F9,      KC_TRNS,                   QK_BOOT,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  RGB_TOG,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   JIGGLER,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  RM_TOGG,    KC_F1,      KC_F2,      KC_F3,      KC_TRNS,                   KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_F4,      KC_F5,      KC_F6,      KC_TRNS,                   JIGGLER,  MAC_TOG,   KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  KC_TRNS,   KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,  QK_LLCK
     ),
@@ -247,8 +271,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 5 - Mouse
     [_MOUSE] = LAYOUT_num(
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_BTN1,    KC_MS_U,    KC_BTN2,    KC_TRNS,    KC_TRNS,
-        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_MS_L,    KC_MS_D,    KC_MS_R,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  MS_BTN1,    MS_UP,    MS_BTN2,    KC_TRNS,    KC_TRNS,
+        KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  MS_LEFT,    MS_DOWN,    MS_RGHT,    KC_TRNS,    KC_TRNS,
         KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,
                               KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
                                                       QK_LLCK,    KC_TRNS,    KC_TRNS, KC_TRNS,  QK_LLCK,   KC_TRNS
@@ -285,7 +309,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 9 - GAME layer
     [_GAME] = LAYOUT_num(
-        KC_TRNS,  KC_BTN3,    KC_M,    KC_TRNS,    KC_TRNS,  KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(0),
+        KC_TRNS,  MS_BTN3,    KC_M,    KC_TRNS,    KC_TRNS,  KC_TRNS,                    KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,    TO(0),
         KC_T,     KC_TAB,    KC_Q,       KC_W,       KC_E,     KC_R,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_G,     KC_LSFT,    KC_A,       KC_S,       KC_D,     KC_F,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_B,     KC_LCTL,     KC_Z,       KC_X,       KC_C,     KC_V,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
@@ -547,7 +571,7 @@ static void check_jiggler_interrupt(uint16_t keycode, keyrecord_t* record) {
 // Format: [previous_key] = replacement_key
 static const uint16_t custom_repeat_map[256] = {
     [KC_W] = KC_N,     // w + repeat = n
-    [KC_BSPC] = C(KC_BSPC), // Backspace + repeat = Backspace
+    [KC_BSPC] = C(KC_BSPC), // Backspace + repeat = delete word (overridden on Mac in process_ctrl_bspc_mac)
     // Add more mappings as needed
 };
 
@@ -1442,11 +1466,11 @@ static bool process_smart_punc_oss_guard(uint16_t keycode, keyrecord_t* record) 
 
     // Check for mouse buttons - clear OSS before the click
     switch (keycode) {
-        case KC_BTN1:
-        case KC_BTN2:
-        case KC_BTN3:
-        case KC_BTN4:
-        case KC_BTN5:
+        case MS_BTN1:
+        case MS_BTN2:
+        case MS_BTN3:
+        case MS_BTN4:
+        case MS_BTN5:
         case HRM_MOUSE:  // Your layer-tap mouse button
             clear_oneshot_mods();
             smart_punc_oss_active = false;
@@ -1769,6 +1793,68 @@ static void update_key_state(uint16_t keycode, keyrecord_t* record) {
 }
 
 // ============================================================================
+// OS-AWARE SHORTCUTS
+// ============================================================================
+static bool process_os_shortcuts(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed) return true;
+    switch (keycode) {
+        case OS_COPY:   tap_code16(is_mac ? G(KC_C) : C(KC_C)); return false;
+        case OS_CUT:    tap_code16(is_mac ? G(KC_X) : C(KC_X)); return false;
+        case OS_PASTE:  tap_code16(is_mac ? G(KC_V) : C(KC_V)); return false;
+        case OS_UNDO:   tap_code16(is_mac ? G(KC_Z) : C(KC_Z)); return false;
+        case OS_SELALL: tap_code16(is_mac ? G(KC_A) : C(KC_A)); return false;
+        case OS_FIND:   tap_code16(is_mac ? G(KC_F) : C(KC_F)); return false;
+        case OS_LOCK:
+            tap_code16(is_mac ? C(G(KC_Q)) : G(KC_L));
+            return false;
+        case OS_APPSW:
+            tap_code16(is_mac ? G(KC_TAB) : A(KC_TAB));
+            return false;
+        case OS_TSKVW:
+            // Mac: Ctrl+Up = Mission Control; Win: Win+Tab = Task View
+            tap_code16(is_mac ? C(KC_UP) : G(KC_TAB));
+            return false;
+        case OS_HOME:
+            if (is_mac) tap_code16(G(KC_LEFT)); else tap_code(KC_HOME);
+            return false;
+        case OS_END:
+            if (is_mac) tap_code16(G(KC_RGHT)); else tap_code(KC_END);
+            return false;
+        case OS_WINSW:
+            // Mac: Ctrl+Cmd+Right = Rectangle "Next Display" (configure Rectangle to match)
+            // Win: Win+Shift+Right = move window to next monitor
+            tap_code16(is_mac ? C(G(KC_RGHT)) : LGUI(LSFT(KC_RGHT)));
+            return false;
+        case MAC_TOG:
+            is_mac = !is_mac;
+            uprintf("MAC_TOG: is_mac=%u\n", is_mac);
+            return false;
+    }
+    return true;
+}
+
+// Mac: intercept Ctrl+Backspace → Option+Delete (delete word, not line)
+static bool process_ctrl_bspc_mac(uint16_t keycode, keyrecord_t* record) {
+    if (!record->event.pressed || !is_mac) return true;
+
+    bool is_bspc_tap = (IS_QK_LAYER_TAP(keycode) &&
+                        QK_LAYER_TAP_GET_TAP_KEYCODE(keycode) == KC_BSPC &&
+                        record->tap.count > 0);
+    bool is_plain_bspc = (keycode == KC_BSPC);
+
+    if (is_bspc_tap || is_plain_bspc) {
+        uint8_t mods = get_mods();
+        if (mods & MOD_MASK_CTRL) {
+            del_mods(MOD_MASK_CTRL);
+            tap_code16(A(KC_BSPC));  // Option+Delete = delete word left on Mac
+            set_mods(mods);
+            return false;
+        }
+    }
+    return true;
+}
+
+// ============================================================================
 // MAIN PROCESS RECORD - Clean and simple
 // ============================================================================
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
@@ -1813,6 +1899,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
 
     // Magic keys processing
     if (!process_magic_keys(keycode, record)) return false;
+
+    // OS-aware shortcuts and Mac Ctrl+Bspc fix
+    if (!process_os_shortcuts(keycode, record)) return false;
+    if (!process_ctrl_bspc_mac(keycode, record)) return false;
 
     // Special macros
     if (!process_special_macros(keycode, record)) return false;
