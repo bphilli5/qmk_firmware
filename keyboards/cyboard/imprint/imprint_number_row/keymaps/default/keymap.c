@@ -104,6 +104,7 @@ enum custom_keycodes {
     OS_END,     // End (Win) / Cmd+Right (Mac)
     OS_WINSW,   // Win+Shift+Right (Win) / Ctrl+Cmd+Right / Rectangle Next Display (Mac)
     MAC_TOG,    // Manual Mac/Win mode toggle
+    OS_CAPS,    // Caps lock with long-enough tap for Mac debounce
 
 };
 
@@ -120,6 +121,11 @@ bool is_mac = false;
 bool process_detected_host_os_user(os_variant_t detected_os) {
     is_mac = (detected_os == OS_MACOS || detected_os == OS_IOS);
     uprintf("OS detected: %s\n", is_mac ? "Mac" : "Windows/Other");
+
+    uint16_t base_dpi = charybdis_get_pointer_default_dpi();
+    uint16_t target_dpi = is_mac ? base_dpi * MAC_POINTER_DPI_MULTIPLIER : base_dpi;
+    pointing_device_set_cpi_on_side(false, target_dpi);  // false = right side (cursor trackball)
+
     return true;
 }
 
@@ -313,8 +319,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_T,     KC_TAB,    KC_Q,       KC_W,       KC_E,     KC_R,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_G,     KC_LSFT,    KC_A,       KC_S,       KC_D,     KC_F,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
         KC_B,     KC_LCTL,     KC_Z,       KC_X,       KC_C,     KC_V,                       KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRNS,     KC_TRNS,
-                              KC_TRNS,    KC_TRNS,    KC_LSFT,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
-                                                      KC_LSFT,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
+                              KC_TRNS,    KC_TRNS,    KC_SPC,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,    KC_TRNS,
+                                                      KC_SPC,  KC_SPC,  KC_TRNS, KC_TRNS,  KC_TRNS,  KC_TRNS
     )
 };
 
@@ -571,7 +577,7 @@ static void check_jiggler_interrupt(uint16_t keycode, keyrecord_t* record) {
 // Format: [previous_key] = replacement_key
 static const uint16_t custom_repeat_map[256] = {
     [KC_W] = KC_N,     // w + repeat = n
-    [KC_BSPC] = C(KC_BSPC), // Backspace + repeat = delete word (overridden on Mac in process_ctrl_bspc_mac)
+    [KC_BSPC] = C(KC_BSPC), // Backspace + repeat = delete word
     // Add more mappings as needed
 };
 
@@ -1287,20 +1293,16 @@ static inline bool will_emit_punctuation_km(uint16_t kc, uint8_t mods) {
     bool shifted = (mods & MOD_MASK_SHIFT) != 0;
 
     switch (kc) {
-        /* Keys that are punctuation unshifted already */
-        case KC_DOT:    // . (or ? when shifted)
-        case KC_COMM:   // , (or / when shifted because of your custom_shift_keys)
+        /* Sentence punctuation only — symbols like # @ - = ` / \ keep the space */
+        case KC_DOT:    // . (or ? via custom shift)
         case KC_SCLN:   // ; (or : when shifted)
-        case KC_SLSH:   // /
-        case KC_BSLS:   //
-        case KC_MINS:   // -
-        case KC_EQL:    // =
-        case KC_GRV:    // `
             return true;
 
-        /* Number row becomes punctuation when shifted: !@#$%^&*() */
-        case KC_1: case KC_2: case KC_3: case KC_4: case KC_5:
-        case KC_6: case KC_7: case KC_8: case KC_9: case KC_0:
+        case KC_COMM:   // , — but shifted is / (custom shift), a symbol
+            return !shifted;
+
+        case KC_SLSH:   // / is a symbol, but ? when shifted
+        case KC_1:      // ! when shifted; other shifted numbers are symbols
             return shifted;
 
         default:
@@ -1797,59 +1799,81 @@ static void update_key_state(uint16_t keycode, keyrecord_t* record) {
 // ============================================================================
 static bool process_os_shortcuts(uint16_t keycode, keyrecord_t* record) {
     if (!record->event.pressed) return true;
+    // Mac has Ctrl↔Cmd swapped in System Prefs, so QMK sends C() and Mac sees Cmd.
+    // G() on Mac would be seen as Ctrl, which is wrong for these shortcuts.
     switch (keycode) {
-        case OS_COPY:   tap_code16(is_mac ? G(KC_C) : C(KC_C)); return false;
-        case OS_CUT:    tap_code16(is_mac ? G(KC_X) : C(KC_X)); return false;
-        case OS_PASTE:  tap_code16(is_mac ? G(KC_V) : C(KC_V)); return false;
-        case OS_UNDO:   tap_code16(is_mac ? G(KC_Z) : C(KC_Z)); return false;
-        case OS_SELALL: tap_code16(is_mac ? G(KC_A) : C(KC_A)); return false;
-        case OS_FIND:   tap_code16(is_mac ? G(KC_F) : C(KC_F)); return false;
+        case OS_COPY:   tap_code16(C(KC_C)); return false;
+        case OS_CUT:    tap_code16(C(KC_X)); return false;
+        case OS_PASTE:  tap_code16(C(KC_V)); return false;
+        case OS_UNDO:   tap_code16(C(KC_Z)); return false;
+        case OS_SELALL: tap_code16(C(KC_A)); return false;
+        case OS_FIND:   tap_code16(C(KC_F)); return false;
         case OS_LOCK:
+            // Both Ctrl and Cmd present → both get swapped → net Ctrl+Cmd+Q on Mac = lock ✓
             tap_code16(is_mac ? C(G(KC_Q)) : G(KC_L));
             return false;
         case OS_APPSW:
-            tap_code16(is_mac ? G(KC_TAB) : A(KC_TAB));
+            // Mac: C(Tab) → Mac sees Cmd+Tab = App Switcher; Win: Alt+Tab
+            tap_code16(is_mac ? C(KC_TAB) : A(KC_TAB));
             return false;
         case OS_TSKVW:
-            // Mac: Ctrl+Up = Mission Control; Win: Win+Tab = Task View
-            tap_code16(is_mac ? C(KC_UP) : G(KC_TAB));
+            // Mac: G(Up) → Mac sees Ctrl+Up = Mission Control; Win: Win+Tab
+            tap_code16(is_mac ? G(KC_UP) : G(KC_TAB));
             return false;
         case OS_HOME:
-            if (is_mac) tap_code16(G(KC_LEFT)); else tap_code(KC_HOME);
+            // Mac: C(Left) → Mac sees Cmd+Left = start of line; Win: Home key
+            if (is_mac) tap_code16(C(KC_LEFT)); else tap_code(KC_HOME);
             return false;
         case OS_END:
-            if (is_mac) tap_code16(G(KC_RGHT)); else tap_code(KC_END);
+            // Mac: C(Right) → Mac sees Cmd+Right = end of line; Win: End key
+            if (is_mac) tap_code16(C(KC_RGHT)); else tap_code(KC_END);
             return false;
         case OS_WINSW:
-            // Mac: Ctrl+Cmd+Right = Rectangle "Next Display" (configure Rectangle to match)
+            // Mac: C(G(Right)) → Mac sees Ctrl+Cmd+Right = Rectangle next display
             // Win: Win+Shift+Right = move window to next monitor
             tap_code16(is_mac ? C(G(KC_RGHT)) : LGUI(LSFT(KC_RGHT)));
             return false;
+        case KC_WBAK:
+        case KC_WFWD:
+            // macOS ignores the AC Back/Forward consumer codes that KC_WBAK/KC_WFWD
+            // send. Use Cmd+[ / Cmd+] instead — C() because Ctrl↔Cmd are swapped at
+            // the OS level, so Mac sees Cmd.
+            if (is_mac) {
+                tap_code16(keycode == KC_WBAK ? C(KC_LBRC) : C(KC_RBRC));
+                return false;
+            }
+            return true;
         case MAC_TOG:
             is_mac = !is_mac;
             uprintf("MAC_TOG: is_mac=%u\n", is_mac);
             return false;
-    }
-    return true;
-}
-
-// Mac: intercept Ctrl+Backspace → Option+Delete (delete word, not line)
-static bool process_ctrl_bspc_mac(uint16_t keycode, keyrecord_t* record) {
-    if (!record->event.pressed || !is_mac) return true;
-
-    bool is_bspc_tap = (IS_QK_LAYER_TAP(keycode) &&
-                        QK_LAYER_TAP_GET_TAP_KEYCODE(keycode) == KC_BSPC &&
-                        record->tap.count > 0);
-    bool is_plain_bspc = (keycode == KC_BSPC);
-
-    if (is_bspc_tap || is_plain_bspc) {
-        uint8_t mods = get_mods();
-        if (mods & MOD_MASK_CTRL) {
-            del_mods(MOD_MASK_CTRL);
-            tap_code16(A(KC_BSPC));  // Option+Delete = delete word left on Mac
-            set_mods(mods);
+        case OS_CAPS:
+            // Mac requires caps lock to be held briefly to register; plain KC_CAPS
+            // tap from a combo is too short. tap_code_delay adds the needed duration.
+            tap_code_delay(KC_CAPS, 80);
             return false;
-        }
+        case HRM_BSPC:
+            if (is_mac && record->tap.count > 0 && (get_mods() & MOD_MASK_CTRL)) {
+                uint8_t saved_mods = get_mods();
+                clear_mods();
+                tap_code16(A(KC_BSPC));
+                set_mods(saved_mods);
+                return false;
+            }
+            return true;
+        case KC_LEFT:
+        case KC_RGHT:
+            // Mac: Ctrl+Left/Right → word navigation (Option+Left/Right).
+            // Ctrl is remapped to Cmd at OS level, so plain Ctrl+Arrow = Cmd+Arrow = line
+            // start/end, which is wrong. Intercept and send Option+Arrow instead.
+            if (is_mac && (get_mods() & MOD_MASK_CTRL)) {
+                uint8_t saved_mods = get_mods();
+                clear_mods();
+                tap_code16(keycode == KC_LEFT ? A(KC_LEFT) : A(KC_RGHT));
+                set_mods(saved_mods);
+                return false;
+            }
+            return true;
     }
     return true;
 }
@@ -1900,9 +1924,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     // Magic keys processing
     if (!process_magic_keys(keycode, record)) return false;
 
-    // OS-aware shortcuts and Mac Ctrl+Bspc fix
     if (!process_os_shortcuts(keycode, record)) return false;
-    if (!process_ctrl_bspc_mac(keycode, record)) return false;
 
     // Special macros
     if (!process_special_macros(keycode, record)) return false;

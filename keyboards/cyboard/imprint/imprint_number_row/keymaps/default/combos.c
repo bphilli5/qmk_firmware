@@ -18,7 +18,7 @@ combo_t key_combos[] = {
     COMBO(HA_CW,  CW_TOGG),
     COMBO(THN_WSW, OS_WINSW),
     // COMBO(NS_Z,   KC_Z),
-    COMBO(NI_CAPS,   KC_CAPS),
+    COMBO(NI_CAPS,   OS_CAPS),
     // COMBO(TC_SYM, OSL(_SYM)),
     COMBO(AE_SELW, SELWORD),
     COMBO(AEI_SELL, SELLINE),

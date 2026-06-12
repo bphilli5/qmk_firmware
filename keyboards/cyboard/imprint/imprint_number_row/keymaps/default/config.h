@@ -1,4 +1,6 @@
 #pragma once
 
 #define SPLIT_DETECTED_OS_ENABLE
-#define OS_DETECTION_SINGLE_REPORT
+
+// Trackball DPI multiplier applied on Mac (tweak if too fast/slow)
+#define MAC_POINTER_DPI_MULTIPLIER 2
