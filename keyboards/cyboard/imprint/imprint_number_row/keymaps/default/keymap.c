@@ -1293,12 +1293,12 @@ static inline bool will_emit_punctuation_km(uint16_t kc, uint8_t mods) {
     bool shifted = (mods & MOD_MASK_SHIFT) != 0;
 
     switch (kc) {
-        /* Sentence punctuation only — symbols like # @ - = ` / \ keep the space */
+        /* Sentence punctuation only — symbols like # @ - = ` / \ : keep the space */
         case KC_DOT:    // . (or ? via custom shift)
-        case KC_SCLN:   // ; (or : when shifted)
             return true;
 
         case KC_COMM:   // , — but shifted is / (custom shift), a symbol
+        case KC_SCLN:   // ; — but : (shifted) keeps the space
             return !shifted;
 
         case KC_SLSH:   // / is a symbol, but ? when shifted
@@ -1346,7 +1346,8 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
 
             key_event_t* prev_event = get_key_history(1);
             uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
-            alt_after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+            // KC_0 sorts after KC_9 in HID order, so the range is KC_1..KC_0
+            alt_after_number = (prev_key >= KC_1 && prev_key <= KC_0);
 
             clear_oneshot_mods();
 
@@ -1423,7 +1424,8 @@ static bool process_smart_punctuation(uint16_t keycode, keyrecord_t* record) {
         uint8_t mods = get_mods() | get_oneshot_mods();
         key_event_t* prev_event = get_key_history(1);
         uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
-        bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+        // KC_0 sorts after KC_9 in HID order, so the range is KC_1..KC_0
+        bool after_number = (prev_key >= KC_1 && prev_key <= KC_0);
 
         clear_oneshot_mods();
         clear_mods();
@@ -1505,25 +1507,26 @@ static bool process_smart_comma(uint16_t keycode, keyrecord_t* record) {
     if (keycode != SMART_COMMA) return true;
 
     if (record->event.pressed) {
-        if (last_key_added_space) {
-            tap_code(KC_BSPC);
-            last_key_added_space = false;
-        }
         uint8_t mods = get_mods() | get_oneshot_mods();
         bool shifted = mods & MOD_MASK_SHIFT;
 
         if (shifted) {
-            // Shift + comma = slash (no auto-space for slash)
+            // Shift + comma = slash. A symbol, so leave any preceding space alone.
             clear_mods();
             clear_oneshot_mods();
             tap_code(KC_SLSH);
             set_mods(mods);
             set_last_keycode(KC_SLSH);  // Set last keycode to slash
         } else {
-            // Regular comma with smart spacing
+            // Regular comma with smart spacing: eat a preceding auto-space first.
+            if (last_key_added_space) {
+                tap_code(KC_BSPC);
+                last_key_added_space = false;
+            }
             key_event_t* prev_event = get_key_history(1);
             uint16_t prev_key = prev_event ? prev_event->keycode : KC_NO;
-            bool after_number = (prev_key >= KC_0 && prev_key <= KC_9);
+            // KC_0 sorts after KC_9 in HID order, so the range is KC_1..KC_0
+            bool after_number = (prev_key >= KC_1 && prev_key <= KC_0);
 
             tap_code(KC_COMM);
 
